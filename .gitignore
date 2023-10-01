@@ -131,5 +131,5 @@ dmypy.json
 # aignacio
 *.swp
 output
-run_dir
+run_dir/*
 .nox/*
