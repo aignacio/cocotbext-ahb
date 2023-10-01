@@ -1,0 +1,53 @@
+[*]
+[*] GTKWave Analyzer v3.3.107 (w)1999-2020 BSI
+[*] Sun Oct  1 14:31:25 2023
+[*]
+[dumpfile] "/Users/aignacio/projects/cocotbext-ahb/run_dir/sim_build_verilator_test_ahb_lite/dump.fst"
+[dumpfile_mtime] "Sun Oct  1 14:27:48 2023"
+[dumpfile_size] 826
+[savefile] "/Users/aignacio/projects/cocotbext-ahb/docs_utils/template.gtkw"
+[timestart] 0
+[size] 1716 1146
+[pos] 130 -16
+*-15.329173 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 193
+[signals_width] 133
+[sst_expanded] 1
+[sst_vpaned_height] 359
+@29
+ahb_template.hresetn
+@28
+ahb_template.hclk
+@200
+-
+-mandatory
+@28
+ahb_template.hsel
+@22
+ahb_template.haddr[31:0]
+@28
+ahb_template.htrans[1:0]
+ahb_template.hburst[2:0]
+ahb_template.hsize[2:0]
+ahb_template.hwrite
+ahb_template.hresp
+ahb_template.hready
+ahb_template.hreadyout
+@22
+ahb_template.hwdata[31:0]
+ahb_template.hrdata[31:0]
+@200
+-
+-optional
+@28
+ahb_template.hexcl
+ahb_template.hexokay
+@22
+ahb_template.hmaster[3:0]
+@28
+ahb_template.hmastlock
+ahb_template.hnonsec
+@22
+ahb_template.hprot[6:0]
+[pattern_trace] 1
+[pattern_trace] 0

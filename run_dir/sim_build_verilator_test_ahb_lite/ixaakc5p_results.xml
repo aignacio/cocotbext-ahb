@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1696173357" />
+    <testcase name="run_test" classname="test_ahb_lite" file="/src/tests/test_ahb_lite.py" lineno="28" time="0.033898115158081055" sim_time_ns="1030.001" ratio_time="30385.19974330949" />
+  </testsuite>
+</testsuites>
