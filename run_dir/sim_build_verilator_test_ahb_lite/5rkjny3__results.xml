@@ -1,8 +1,0 @@
-<testsuites name="results">
-  <testsuite name="all" package="all">
-    <property name="random_seed" value="1696169822" />
-    <testcase name="run_test" classname="test_ahb_lite" file="/src/tests/test_ahb_lite.py" lineno="21" time="0.014322042465209961" sim_time_ns="0.0" ratio_time="0.0">
-      <failure message="Test failed with RANDOM_SEED=1696169822" />
-    </testcase>
-  </testsuite>
-</testsuites>
