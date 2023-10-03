@@ -4,13 +4,14 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson Ignacio da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 30.09.2023
-# Last Modified Date: 01.10.2023
+# Last Modified Date: 02.10.2023
 import random
 import cocotb
 import os
 import logging
 import pytest
 import itertools
+import sys
 
 from random import randrange
 from const import cfg
@@ -18,7 +19,7 @@ from cocotb_test.simulator import run
 from cocotb.triggers import RisingEdge, ClockCycles
 from cocotb.regression import TestFactory
 from cocotb.clock import Clock
-from cocotbext.ahb import AhbBus
+from cocotbext.ahb import AHBMaster
 
 async def reset_dut(dut, cycles):
     dut.hresetn.setimmediatevalue(0) 
@@ -35,8 +36,8 @@ async def run_test(dut):
         cnt += 1
         if cnt > 100:
             break
-
-    ander = AhbBus
+    #print(sys.path)
+    ander = AHBMaster(dut, "", dut.hclk)
 
 def test_ahb_lite():
     """
