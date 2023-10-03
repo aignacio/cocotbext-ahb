@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson Ignacio da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 30.09.2023
-# Last Modified Date: 02.10.2023
+# Last Modified Date: 03.10.2023
 import random
 import cocotb
 import os
@@ -16,28 +16,26 @@ import sys
 from random import randrange
 from const import cfg
 from cocotb_test.simulator import run
-from cocotb.triggers import RisingEdge, ClockCycles
+from cocotb.triggers import ClockCycles
 from cocotb.regression import TestFactory
 from cocotb.clock import Clock
-from cocotbext.ahb import AHBMaster
+from cocotbext.ahb import AHBLiteMaster
 
-async def reset_dut(dut, cycles):
+@cocotb.coroutine
+async def setup_dut(dut, cycles):
+    cocotb.start_soon(Clock(dut.hclk, *cfg.CLK_100MHz).start())
     dut.hresetn.setimmediatevalue(0) 
     await ClockCycles(dut.hclk, cycles) 
     dut.hresetn.setimmediatevalue(1) 
 
 @cocotb.test()
 async def run_test(dut):
-    cocotb.start_soon(Clock(dut.hclk, *cfg.CLK_100MHz).start())
-    await reset_dut(dut, cfg.RST_CYCLES) 
-    cnt = 0
-    while True:
-        await RisingEdge(dut.hclk)
-        cnt += 1
-        if cnt > 100:
-            break
-    #print(sys.path)
-    ander = AHBMaster(dut, "", dut.hclk)
+    ahbMaster = AHBLiteMaster(dut, "slave", dut.hclk)
+    await setup_dut(dut, cfg.RST_CYCLES) 
+    await ClockCycles(dut.hclk,10)
+    await ahbMaster.write(0x123,0xdeadbeef) 
+    await ClockCycles(dut.hclk,10)
+    await ahbMaster.write(0x456,0xbabebabe) 
 
 def test_ahb_lite():
     """
