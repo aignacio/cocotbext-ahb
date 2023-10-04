@@ -14,7 +14,8 @@ jobs:
   regresion-tests:
     name: Regresion Tests
     runs-on: ubuntu-latest
-    container: aignacio/rtldev:latest
+    container: 
+      image: aignacio/rtldev:latest
     strategy:
       fail-fast: false
     steps:
