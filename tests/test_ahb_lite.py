@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson Ignacio da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 30.09.2023
-# Last Modified Date: 03.10.2023
+# Last Modified Date: 04.10.2023
 import random
 import cocotb
 import os
@@ -24,9 +24,9 @@ from cocotbext.ahb import AHBLiteMaster
 @cocotb.coroutine
 async def setup_dut(dut, cycles):
     cocotb.start_soon(Clock(dut.hclk, *cfg.CLK_100MHz).start())
-    dut.hresetn.setimmediatevalue(0) 
+    dut.hresetn.value = 0
     await ClockCycles(dut.hclk, cycles) 
-    dut.hresetn.setimmediatevalue(1) 
+    dut.hresetn.value = 1
 
 @cocotb.test()
 async def run_test(dut):

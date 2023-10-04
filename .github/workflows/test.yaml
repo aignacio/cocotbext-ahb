@@ -11,8 +11,16 @@ on:
       - 'stable/**'
 
 jobs:
-  regresion-tests:
+  Regression-tests:
     name: Regresion Tests
+    strategy:
+      matrix:
+        python-version:
+          - 3.6
+          - 3.7
+          - 3.8
+          - 3.9
+          - 3.10
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -44,4 +52,4 @@ jobs:
         pip install nox
     - name: Run tests
       run: |
-        nox
+        nox -s "run-${{ matrix.python-version }}"
