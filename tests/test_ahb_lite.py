@@ -31,6 +31,7 @@ async def setup_dut(dut, cycles):
 @cocotb.test()
 async def run_test(dut):
     ahbMaster = AHBLiteMaster(dut, "slave", dut.hclk)
+
     await setup_dut(dut, cfg.RST_CYCLES) 
     await ClockCycles(dut.hclk,10)
     await ahbMaster.write(0x123,0xdeadbeef) 
