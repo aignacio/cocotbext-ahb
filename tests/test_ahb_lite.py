@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson Ignacio da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 30.09.2023
-# Last Modified Date: 04.10.2023
+# Last Modified Date: 05.10.2023
 import random
 import cocotb
 import os
@@ -31,7 +31,6 @@ async def setup_dut(dut, cycles):
 @cocotb.test()
 async def run_test(dut):
     ahbMaster = AHBLiteMaster(dut, "slave", dut.hclk)
-
     await setup_dut(dut, cfg.RST_CYCLES) 
     await ClockCycles(dut.hclk,10)
     await ahbMaster.write(0x123,0xdeadbeef) 
@@ -54,5 +53,8 @@ def test_ahb_lite():
         toplevel=cfg.TOPLEVEL,
         module=module,
         sim_build=SIM_BUILD,
-        extra_args=extra_args_sim
+        extra_args=extra_args_sim,
+        extra_env=cfg.EXTRA_ENV,
+        timescale=cfg.TIMESCALE,
+        waves=1
     )

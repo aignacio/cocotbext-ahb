@@ -4,17 +4,18 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson Ignacio da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 01.10.2023
-# Last Modified Date: 03.10.2023
+# Last Modified Date: 05.10.2023
 import cocotb
 import enum
-import collections.abc
 
 #from cocotb_bus.drivers import BusDriver
 # from cocotb_bus.bus import Bus
 from cocotb_bus.drivers import BusDriver
+from cocotb_bus.drivers import Bus
 from cocotb.handle import SimHandleBase
 from cocotb.triggers import RisingEdge
 from typing import Any, List, Optional, Sequence, Tuple, Union
+from cocotb.log import SimLog
 
 class AHBSize(enum.IntEnum):
     BYTE    = 0b000
@@ -61,7 +62,7 @@ class AHBLiteMaster(BusDriver):
         for signal in self._signals + self._optional_signals:
             if signal not in ["hready", "hresp", "hrdata"]:
                 try:
-                    default_value = 1
+                    default_value = 0
                     getattr(self.bus, signal).setimmediatevalue(default_value)
                 except AttributeError:
                     pass
@@ -105,3 +106,24 @@ class AHBLiteMaster(BusDriver):
         # Data phase
         self.bus.hwdata.value = value
         await RisingEdge(self.clock)
+    
+# class test(Bus):
+    # _signals = ["haddr", "hsize", "htrans", "hwdata",
+                # "hrdata", "hwrite", "hready", "hresp"]
+
+    # _optional_signals = ["hburst","hmastlock", "hprot", "hnonsec",
+                         # "hexcl", "hmaster", "hexokay", "hsel"]
+
+    # def __init__(self, entity, name, clock, **kwargs):
+        # self.log = SimLog("cocotb.%s.%s" % (entity._name, name))
+        # super().__init__(entity, name, self._signals, optional_signals=self._optional_signals, **kwargs)
+
+        # self.clock = clock
+        # for signal in self._signals:
+            # if signal not in ["hready", "hresp", "hrdata"]:
+                # try:
+                    # default_value = 0
+                    # getattr(self.bus, signal).setimmediatevalue(default_value)
+                # except AttributeError:
+                    # pass
+
