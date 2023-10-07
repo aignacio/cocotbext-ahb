@@ -5,5 +5,5 @@
 # Author            : Anderson Ignacio da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 02.10.2023
 # Last Modified Date: 07.10.2023
-from .amba_ahb import AHBLiteMaster
-from .amba_ahb import AHBBus
+from .ahb_master import AHBLiteMaster
+from .ahb_bus import AHBBus

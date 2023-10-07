@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# File              : ahb_bus.py
+# License           : MIT license <Check LICENSE>
+# Author            : Anderson Ignacio da Silva (aignacio) <anderson@aignacio.com>
+# Date              : 07.10.2023
+# Last Modified Date: 07.10.2023
+import cocotb
+
+from cocotb_bus.drivers import Bus
+from cocotb.handle import SimHandleBase
+from typing import Any, List, Optional, Sequence, Tuple, Union
+
+class AHBBus(Bus):
+    _signals = ["haddr", "hsize", "htrans", "hwdata",
+                "hrdata", "hwrite", "hready", "hresp"]
+
+    _optional_signals = ["hburst","hmastlock", "hprot", "hnonsec",
+                         "hexcl", "hmaster", "hexokay", "hsel"]
+
+    def __init__(self, entity: SimHandleBase=None, 
+                 prefix:str=None, **kwargs: Any):
+        super().__init__(entity, prefix, self._signals, 
+                         optional_signals=self._optional_signals, **kwargs)
+        self.entity = entity
+        self.name = prefix if prefix is not None else entity._name+'_ahb_bus' 
+        self._data_width = len(self.hwdata)
+        self._addr_width = len(self.haddr)
+    
+    @property
+    def data_width(self):
+        return self._data_width
+
+    @property
+    def addr_width(self):
+        return self._addr_width
+
+    @property
+    def hsel_exist(self):
+        return 1 if 'hsel' in self._signals else 0
+    
+    @classmethod
+    def from_entity(cls, entity, **kwargs):
+        return cls(entity, **kwargs)
+
+    @classmethod
+    def from_prefix(cls, entity, prefix, **kwargs):
+        return cls(entity, prefix, **kwargs)
