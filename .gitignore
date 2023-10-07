@@ -133,3 +133,4 @@ dmypy.json
 output
 run_dir/
 .nox/*
+.DS_Store

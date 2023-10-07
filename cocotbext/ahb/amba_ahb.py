@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson Ignacio da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 01.10.2023
-# Last Modified Date: 05.10.2023
+# Last Modified Date: 07.10.2023
 import cocotb
 import enum
 
@@ -49,6 +49,40 @@ class AHBWrite(enum.IntEnum):
     WRITE   = 0b0
     READ    = 0b1
 
+class AHBBus(Bus):
+    _signals = ["haddr", "hsize", "htrans", "hwdata",
+                "hrdata", "hwrite", "hready", "hresp"]
+
+    _optional_signals = ["hburst","hmastlock", "hprot", "hnonsec",
+                         "hexcl", "hmaster", "hexokay", "hsel"]
+
+    def __init__(self, entity: SimHandleBase=None, 
+                 prefix:str=None, clock:str=None, **kwargs: Any):
+        super().__init__(entity, prefix, self._signals, 
+                         optional_signals=self._optional_signals, **kwargs)
+        self.entity = entity
+        self.clock = clock
+        self.name = prefix if prefix is not None else entity._name+'_AHBBus' 
+        self._data_width = len(self.hwdata)
+        self._addr_width = len(self.haddr)
+
+    @property
+    def data_width(self):
+        return self._data_width
+
+    @property
+    def addr_width(self):
+        return self._addr_width
+
+    @classmethod
+    def from_entity(cls, entity, clock, **kwargs):
+        return cls(entity, '', clock, **kwargs)
+
+    @classmethod
+    def from_prefix(cls, entity, prefix, clock, **kwargs):
+        return cls(entity, prefix, clock, **kwargs)
+
+
 class AHBLiteMaster(BusDriver):
     _signals = ["haddr", "hsize", "htrans", "hwdata",
                 "hrdata", "hwrite", "hready", "hresp"]
@@ -57,8 +91,8 @@ class AHBLiteMaster(BusDriver):
                          "hexcl", "hmaster", "hexokay", "hsel"]
 
     def __init__(self, entity, name, clock, **kwargs):
-        BusDriver.__init__(self, entity, name, clock)
-        self.clock = clock
+        super().__init__(entity, name, clock)
+
         for signal in self._signals + self._optional_signals:
             if signal not in ["hready", "hresp", "hrdata"]:
                 try:
@@ -106,24 +140,3 @@ class AHBLiteMaster(BusDriver):
         # Data phase
         self.bus.hwdata.value = value
         await RisingEdge(self.clock)
-    
-# class test(Bus):
-    # _signals = ["haddr", "hsize", "htrans", "hwdata",
-                # "hrdata", "hwrite", "hready", "hresp"]
-
-    # _optional_signals = ["hburst","hmastlock", "hprot", "hnonsec",
-                         # "hexcl", "hmaster", "hexokay", "hsel"]
-
-    # def __init__(self, entity, name, clock, **kwargs):
-        # self.log = SimLog("cocotb.%s.%s" % (entity._name, name))
-        # super().__init__(entity, name, self._signals, optional_signals=self._optional_signals, **kwargs)
-
-        # self.clock = clock
-        # for signal in self._signals:
-            # if signal not in ["hready", "hresp", "hrdata"]:
-                # try:
-                    # default_value = 0
-                    # getattr(self.bus, signal).setimmediatevalue(default_value)
-                # except AttributeError:
-                    # pass
-

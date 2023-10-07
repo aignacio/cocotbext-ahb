@@ -15,6 +15,28 @@ module ahb_template #(
   // SLAVE - IN
   //---------------------------------------
   // From master/interconnect to slave/decoder 
+  input                       hsel,
+  input   [(ADDR_WIDTH-1):0]  haddr,
+  input   [2:0]               hburst,
+  input                       hmastlock,
+  input   [6:0]               hprot,
+  input   [2:0]               hsize,
+  input                       hnonsec,
+  input                       hexcl,
+  input   [3:0]               hmaster,
+  input   [1:0]               htrans,
+  input   [(DATA_WIDTH-1):0]  hwdata,
+  input                       hwrite,
+  // From slave to interconnect/master 
+  output  [(DATA_WIDTH-1):0]  hrdata,
+  output                      hready,
+  output                      hresp,
+  output                      hexokay,
+
+  //----------------------------------------
+  // SLAVE - IN
+  //---------------------------------------
+  // From master/interconnect to slave/decoder 
   input                       slave_hsel,
   input   [(ADDR_WIDTH-1):0]  slave_haddr,
   input   [2:0]               slave_hburst,

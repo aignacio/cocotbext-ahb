@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson Ignacio da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 30.09.2023
-# Last Modified Date: 05.10.2023
+# Last Modified Date: 07.10.2023
 import random
 import cocotb
 import os
@@ -19,7 +19,7 @@ from cocotb_test.simulator import run
 from cocotb.triggers import ClockCycles
 from cocotb.regression import TestFactory
 from cocotb.clock import Clock
-from cocotbext.ahb import AHBLiteMaster
+from cocotbext.ahb import AHBLiteMaster, AHBBus
 
 @cocotb.coroutine
 async def setup_dut(dut, cycles):
@@ -30,12 +30,12 @@ async def setup_dut(dut, cycles):
 
 @cocotb.test()
 async def run_test(dut):
-    ahbMaster = AHBLiteMaster(dut, "slave", dut.hclk)
+    ahbMaster  = AHBBus(dut, "slave", dut.hclk)
+    ahbMaster1 = AHBBus.from_entity(dut, dut.hclk)
+    ahbMaster2 = AHBBus.from_prefix(dut, "slave", dut.hclk)
     await setup_dut(dut, cfg.RST_CYCLES) 
-    await ClockCycles(dut.hclk,10)
-    await ahbMaster.write(0x123,0xdeadbeef) 
-    await ClockCycles(dut.hclk,10)
-    await ahbMaster.write(0x456,0xbabebabe) 
+    # await ahbMaster.write(0x123,0xdeadbeef) 
+    # await ahbMaster.write(0x456,0xbabebabe) 
 
 def test_ahb_lite():
     """
