@@ -27,7 +27,8 @@ class AHBLiteMaster:
         self.rst = reset
         self.timeout = timeout
         self.def_val = def_val
-        self.log = logging.getLogger(f"cocotb.{bus._name}.{bus._entity._name}")
+        self.log = logging.getLogger(f"cocotb.ahb_lite.{bus._name}."
+                                     f"{bus._entity._name}")
         self._init_bus()
         self.log.info("AHB lite master")
         self.log.info("cocotbext-ahb version %s", __version__)
@@ -98,12 +99,14 @@ class AHBLiteMaster:
             raise Exception(f'Address length ({len(address)}) is'
                             f'different from data length ({len(value)})')
 
-        # self.log.info("AHB write txn:")
-        # self.log.info(f"")
-
         response = []
         if not pip:
             for txn_addr, txn_data in zip(address, value):
+                self.log.info(f"AHB write txn:\n"
+                              f"\tADDR = 0x{txn_addr:x}\n"
+                              f"\tDATA = 0x{txn_data:x}\n"
+                              f"\tSIZE = {size}")
+
                 self._addr_phase(txn_addr, size)
                 await RisingEdge(self.clk)
 
@@ -130,4 +133,5 @@ class AHBLiteMaster:
                     await RisingEdge(self.clk)
                 response += [AHBResp(int(self.bus.hresp.value))]
                 self._init_bus()
+
         return response
