@@ -31,9 +31,10 @@ async def run_test(dut):
                                     dut.hresetn,
                                     def_val='Z')
     await setup_dut(dut, cfg.RST_CYCLES)
-    await ahb_lite_master.write(0x123, 0xdeadbeef)
-    await ClockCycles(dut.hclk, 10)
-    # await ahbMaster.write(0x456,0xbabebabe)
+    dut.master_hready.value = 1
+    dut.master_hresp.value = 0
+    resp = await ahb_lite_master.write([0x123, 0x3], [0xdeadbeef, 0xbabe])
+    print(f"AHB Response: {resp}")
 
 
 def test_ahb_lite():

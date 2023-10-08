@@ -30,8 +30,9 @@ class AHBBurst(enum.IntEnum):
 
 
 class AHBResp(enum.IntEnum):
-    OKAY = 0b0
-    ERROR = 0b1
+    OKAY = 0b00
+    ERROR = 0b01
+    UNKNOWN = 0b10
 
 
 class AHBTrans(enum.IntEnum):

@@ -9,7 +9,7 @@
 import cocotb
 import logging
 
-from .ahb_types import AHBTrans, AHBWrite, AHBSize
+from .ahb_types import AHBTrans, AHBWrite, AHBSize, AHBResp
 from .ahb_bus import AHBBus
 from .version import __version__
 
@@ -25,6 +25,7 @@ class AHBLiteMaster:
         self.bus = bus
         self.clk = clock
         self.rst = reset
+        self.timeout = timeout
         self.def_val = def_val
         self.log = logging.getLogger(f"cocotb.{bus._name}.{bus._entity._name}")
         self._init_bus()
@@ -66,30 +67,67 @@ class AHBLiteMaster:
         elif size <= 0 or (size & (size - 1)) != 0:
             raise ValueError("Size must be a positive power of 2")
 
+    def _addr_phase(self, addr, size):
+        self.bus.haddr.value = addr
+        self.bus.htrans.value = AHBTrans(0b10)
+        self.bus.hsize.value = self._convert_size(size)
+        self.bus.hwrite.value = AHBWrite(0b1)
+        if self.bus.hsel_exist:
+            self.bus.hsel.value = 1
+
     @cocotb.coroutine
-    async def write(self, address: Union[int, Sequence[int]], value: Union[int, Sequence[int]],
-                    size: Optional[int] = None) -> None:
+    async def write(self, address: Union[int, Sequence[int]],
+                    value: Union[int, Sequence[int]],
+                    size: Optional[int] = None,
+                    pip: Optional[bool] = False) -> Sequence[AHBResp]:
         """Write data in the AHB bus."""
-        
+
+        # Convert all inputs into lists, if not already
+        if not isinstance(address, list):
+            address = [address]
+        if not isinstance(value, list):
+            value = [value]
+
         if size is None:
             size = self.bus._data_width // 8
         else:
             AHBLiteMaster._check_size(size, len(self.bus.hwdata) // 8)
 
-        await RisingEdge(self.clk)
+        # First check if the input sizes are correct
+        if len(address) != len(value):
+            raise Exception(f'Address length ({len(address)}) is'
+                            f'different from data length ({len(value)})')
 
-        # Address phase
-        self.bus.haddr.value = address
-        self.bus.htrans.value = AHBTrans(0b10)
-        self.bus.hsize.value = self._convert_size(size)
-        self.bus.hwrite.value = AHBWrite(0b1)
-        await RisingEdge(self.clk)
-        # Address phase
-        self._init_bus()
-        # while self.bus.hready.value == 0:
-        #   await RisingEdge(self.clock)
+        # self.log.info("AHB write txn:")
+        # self.log.info(f"")
 
-        # Data phase
-        self.bus.hwdata.value = value
-        await RisingEdge(self.clk)
-        self._init_bus()
+        response = []
+        if not pip:
+            for txn_addr, txn_data in zip(address, value):
+                self._addr_phase(txn_addr, size)
+                await RisingEdge(self.clk)
+
+                # Address phase
+                timeout_counter = 0
+                while self.bus.hready.value != 1:
+                    timeout_counter += 1
+                    if timeout_counter == self.timeout:
+                        raise Exception(f'Timeout value of {timeout_counter}'
+                                        f' clock cycles has been reached!')
+                    await RisingEdge(self.clk)
+
+                self._init_bus()
+
+                # Data phase
+                self.bus.hwdata.value = txn_data
+                await RisingEdge(self.clk)
+                timeout_counter = 0
+                while self.bus.hready.value != 1:
+                    timeout_counter += 1
+                    if timeout_counter == self.timeout:
+                        raise Exception(f'Timeout value of {timeout_counter}'
+                                        f' clock cycles has been reached!')
+                    await RisingEdge(self.clk)
+                response += [AHBResp(int(self.bus.hresp.value))]
+                self._init_bus()
+        return response

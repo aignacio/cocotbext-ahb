@@ -37,7 +37,7 @@ class AHBBus(Bus):
 
     @property
     def hsel_exist(self):
-        return 1 if 'hsel' in self._signals else 0
+        return True if 'hsel' in self._signals else False
 
     @classmethod
     def from_entity(cls, entity, **kwargs):
