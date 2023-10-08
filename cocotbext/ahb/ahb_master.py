@@ -67,9 +67,10 @@ class AHBLiteMaster:
             raise ValueError("Size must be a positive power of 2")
 
     @cocotb.coroutine
-    async def write(self, address: int, value: Union[int, Sequence[int]],
+    async def write(self, address: Union[int, Sequence[int]], value: Union[int, Sequence[int]],
                     size: Optional[int] = None) -> None:
         """Write data in the AHB bus."""
+        
         if size is None:
             size = self.bus._data_width // 8
         else:

@@ -29,7 +29,7 @@ async def run_test(dut):
     ahb_lite_master = AHBLiteMaster(AHBBus.from_prefix(dut, "slave"),
                                     dut.hclk,
                                     dut.hresetn,
-                                    def_val='X')
+                                    def_val='Z')
     await setup_dut(dut, cfg.RST_CYCLES)
     await ahb_lite_master.write(0x123, 0xdeadbeef)
     await ClockCycles(dut.hclk, 10)
