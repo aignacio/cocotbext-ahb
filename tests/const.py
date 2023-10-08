@@ -13,7 +13,7 @@ import glob
 class cfg:
     RST_CYCLES = 3
     CLK_100MHz = (10, "ns")
-    TIMEOUT_TEST = (CLK_100MHz[0]*200, "ns")
+    TIMEOUT_TEST = (CLK_100MHz[0] * 200, "ns")
 
     TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
     RTL_DIR = os.path.join(TESTS_DIR, "dut")

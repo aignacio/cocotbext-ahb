@@ -71,7 +71,7 @@ class AHBLiteMaster:
                     size: Optional[int] = None) -> None:
         """Write data in the AHB bus."""
         if size is None:
-            size = self.bus._data_width//8
+            size = self.bus._data_width // 8
         else:
             AHBLiteMaster._check_size(size, len(self.bus.hwdata) // 8)
 

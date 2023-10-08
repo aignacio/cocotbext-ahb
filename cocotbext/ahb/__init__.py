@@ -15,7 +15,3 @@
 # from cocotbext.ahb import AHBLiteMaster, AHBBus
 from .ahb_master import AHBLiteMaster
 from .ahb_bus import AHBBus
-
-# Called classes due to flake8
-AHBBus()
-AHBLiteMaster()

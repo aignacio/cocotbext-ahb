@@ -23,7 +23,7 @@ class AHBBus(Bus):
         super().__init__(entity, prefix, self._signals,
                          optional_signals=self._optional_signals, **kwargs)
         self.entity = entity
-        self.name = prefix if prefix is not None else entity._name+'_ahb_bus'
+        self.name = prefix if prefix is not None else entity._name + '_ahb_bus'
         self._data_width = len(self.hwdata)
         self._addr_width = len(self.haddr)
 

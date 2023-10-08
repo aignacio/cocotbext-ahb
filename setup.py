@@ -28,7 +28,7 @@ setup(
         'cocotb-test>=0.2.4',
         'cocotb>=1.8.0'
     ],
-    keywords=['soc', 'vip', 'hdl',  'verilog', 'systemverilog', 'ahb'],
+    keywords=['soc', 'vip', 'hdl', 'verilog', 'systemverilog', 'ahb'],
     classifiers=[
         "Development Status :: 1 - Planning",
         "Intended Audience :: Developers",
