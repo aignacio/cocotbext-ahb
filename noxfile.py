@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 # File              : noxfile.py
 # License           : MIT license <Check LICENSE>
-# Author            : Anderson Ignacio da Silva (aignacio) <anderson@aignacio.com>
-# Date              : 30.09.2023
-# Last Modified Date: 05.10.2023
+# Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
+# Date              : 08.10.2023
+# Last Modified Date: 08.10.2023
+
 import nox
+
 
 @nox.session(python=["3.6", "3.7", "3.8", "3.9", "3.10"])
 def run(session):
@@ -22,3 +24,9 @@ def run(session):
                     'cocotb >= 1.8.0')
     session.install("-e", ".")
     session.run('pytest', '-rP', '-n', 'auto')
+
+
+@nox.session(python=["3.9", "3.10"])
+def lint(session):
+    session.install('flake8')
+    session.run('flake8')

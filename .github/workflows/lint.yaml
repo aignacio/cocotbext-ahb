@@ -1,0 +1,34 @@
+name: Lint
+
+on:
+  push:
+    branches:
+      - master
+      - 'stable/**'
+  pull_request:
+    branches:
+      - master
+      - 'stable/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    strategy:
+      matrix:
+        python-version:
+          - 3.9
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install nox
+        run: pip install --upgrade nox
+
+      - name: Run nox tests
+        run: nox -s "lint-${{ matrix.python-version }}"
