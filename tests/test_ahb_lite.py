@@ -4,16 +4,21 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 08.10.2023
+# Last Modified Date: 10.10.2023
 
 import cocotb
 import os
+import random
 
 from const import cfg
 from cocotb_test.simulator import run
 from cocotb.triggers import ClockCycles
 from cocotb.clock import Clock
 from cocotbext.ahb import AHBBus, AHBLiteMaster
+
+
+def rnd_val(bit: int = 0):
+    return random.randint(0, (2**bit) - 1)
 
 
 @cocotb.coroutine
@@ -33,8 +38,15 @@ async def run_test(dut):
     await setup_dut(dut, cfg.RST_CYCLES)
     dut.master_hready.value = 1
     dut.master_hresp.value = 0
-    resp = await ahb_lite_master.write([0x123, 0x3], [0xdeadbeef, 0xbabe])
-    print(f"AHB Response: {resp}")
+    dut.master_hrdata.value = 0
+
+    address = [rnd_val(32) for _ in range(200)]
+    value = [rnd_val(32) for _ in range(200)]
+    resp = await ahb_lite_master.write(address, value, pip=True)
+    resp = await ahb_lite_master.write(address, value, pip=False)
+    resp = await ahb_lite_master.write(address, value, pip=True)
+    resp = await ahb_lite_master.write(address, value, pip=False)
+    print(resp)
 
 
 def test_ahb_lite():

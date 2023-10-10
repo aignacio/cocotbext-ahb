@@ -4,10 +4,11 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 08.10.2023
+# Last Modified Date: 10.10.2023
 
 import cocotb
 import logging
+import copy
 
 from .ahb_types import AHBTrans, AHBWrite, AHBSize, AHBResp
 from .ahb_bus import AHBBus
@@ -131,7 +132,44 @@ class AHBLiteMaster:
                         raise Exception(f'Timeout value of {timeout_counter}'
                                         f' clock cycles has been reached!')
                     await RisingEdge(self.clk)
-                response += [AHBResp(int(self.bus.hresp.value))]
+                response += [{'resp': AHBResp(int(self.bus.hresp.value)),
+                              'data': self.bus.hrdata.value}]
                 self._init_bus()
+        else:
+            # Need to copy data as we'll have to shift address/value
+            t_address = copy.deepcopy(address)
+            t_value = copy.deepcopy(value)
 
+            t_address.append(self._get_def(len(self.bus.haddr),
+                                           self.def_val))
+            t_value.insert(0, self._get_def(len(self.bus.hwdata),
+                                            self.def_val))
+            first_txn = True
+            # for txn_addr, txn_data in zip(address, value):
+            for index, (txn_addr, txn_data) in enumerate(zip(t_address,
+                                                             t_value)):
+                if index == len(t_address) - 1:
+                    self._init_bus()
+                else:
+                    self._addr_phase(txn_addr, size)
+                    self.log.info(f"AHB write txn:\n"
+                                  f"\tADDR = 0x{txn_addr:x}\n"
+                                  f"\tDATA = 0x{t_value[index+1]:x}\n"
+                                  f"\tSIZE = {size}")
+                self.bus.hwdata.value = txn_data
+                await RisingEdge(self.clk)
+                timeout_counter = 0
+                while self.bus.hready.value != 1:
+                    timeout_counter += 1
+                    if timeout_counter == self.timeout:
+                        raise Exception(f'Timeout value of {timeout_counter}'
+                                        f' clock cycles has been reached!')
+                    await RisingEdge(self.clk)
+
+                if first_txn:
+                    first_txn = False
+                else:
+                    response += [{'resp': AHBResp(int(self.bus.hresp.value)),
+                                  'data': self.bus.hrdata.value}]
+            self._init_bus()
         return response
