@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 10.10.2023
+# Last Modified Date: 14.10.2023
 
 import cocotb
 import os
@@ -17,8 +17,21 @@ from cocotb.clock import Clock
 from cocotbext.ahb import AHBBus, AHBLiteMaster
 
 
-def rnd_val(bit: int = 0):
-    return random.randint(0, (2**bit) - 1)
+def rnd_val(bit: int = 0, zero: bool = True):
+    if zero is True:
+        return random.randint(0, (2**bit) - 1)
+    else:
+        return random.randint(1, (2**bit) - 1)
+
+
+def pick_random_value(input_list):
+    """
+    Pick a random value from the given list.
+    """
+    if input_list:
+        return random.choice(input_list)
+    else:
+        return None  # Return None if the list is empty
 
 
 @cocotb.coroutine
@@ -42,10 +55,18 @@ async def run_test(dut):
 
     address = [rnd_val(32) for _ in range(200)]
     value = [rnd_val(32) for _ in range(200)]
+    size = [pick_random_value([1, 2, 4]) for _ in range(200)]
+
     resp = await ahb_lite_master.write(address, value, pip=True)
     resp = await ahb_lite_master.write(address, value, pip=False)
     resp = await ahb_lite_master.write(address, value, pip=True)
     resp = await ahb_lite_master.write(address, value, pip=False)
+
+    resp = await ahb_lite_master.write(address, value, size, pip=False)
+    resp = await ahb_lite_master.write(address, value, size, pip=False)
+    resp = await ahb_lite_master.write(address, value, size, pip=True)
+    resp = await ahb_lite_master.write(address, value, size, pip=True)
+
     print(resp)
 
 
