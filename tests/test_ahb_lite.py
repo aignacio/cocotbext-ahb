@@ -66,7 +66,7 @@ async def run_test(dut):
     resp = await ahb_lite_master.write(address, value, size, pip=False)
     resp = await ahb_lite_master.write(address, value, size, pip=True)
     resp = await ahb_lite_master.write(address, value, size, pip=True)
-    
+
     resp = await ahb_lite_master.read(address, pip=True)
 
     print(resp)
