@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 14.10.2023
+# Last Modified Date: 15.10.2023
 
 import cocotb
 import logging
@@ -42,15 +42,14 @@ class AHBLiteMaster:
             if signal not in ["hready", "hresp", "hrdata"]:
                 sig = getattr(self.bus, signal)
                 try:
-                    default_value = self._get_def(len(sig), self.def_val)
+                    default_value = self._get_def(len(sig))
                     sig.setimmediatevalue(default_value)
                 except AttributeError:
                     pass
 
-    def _get_def(self, width: int = 1,
-                 val: Union[int, str] = 'Z') -> BinaryValue:
+    def _get_def(self, width: int = 1) -> BinaryValue:
         """Return a handle obj with the default value"""
-        return LogicArray([val for _ in range(width)])
+        return LogicArray([self.def_val for _ in range(width)])
 
     def _convert_size(self, value) -> Union[AHBTrans, LogicArray]:
         """Convert byte size into hsize."""
@@ -99,10 +98,10 @@ class AHBLiteMaster:
 
             if phase == 'address_phase':
                 vec_out = vec
-                vec_out.append(self._get_def(width, self.def_val))
+                vec_out.append(self._get_def(width))
             elif phase == 'data_phase':
                 vec_out = vec
-                vec_out.insert(0, self._get_def(width, self.def_val))
+                vec_out.insert(0, self._get_def(width))
         else:
             # Format address/data to send in non-pipeline
             # Address
@@ -113,10 +112,10 @@ class AHBLiteMaster:
             if phase == 'address_phase':
                 for i in vec:
                     vec_out.append(i)
-                    vec_out.append(self._get_def(width, self.def_val))
+                    vec_out.append(self._get_def(width))
             elif phase == 'data_phase':
                 for i in vec:
-                    vec_out.append(self._get_def(width, self.def_val))
+                    vec_out.append(self._get_def(width))
                     vec_out.append(i)
         return vec_out
 
@@ -138,7 +137,7 @@ class AHBLiteMaster:
                 self._addr_phase(txn_addr, txn_size, mode)
                 if txn_addr != self.def_val:
                     if not isinstance(txn_addr, LogicArray):
-                        self.log.info(f"AHB write txn:\n"
+                        self.log.info(f"AHB {mode} txn:\n"
                                       f"\tADDR = 0x{txn_addr:x}\n"
                                       f"\tDATA = 0x{value[index+1]:x}\n"
                                       f"\tSIZE = {txn_size}")
@@ -202,3 +201,40 @@ class AHBLiteMaster:
         t_size = self._create_vector(t_size, width, 'address_phase', pip)
 
         return await self._send_txn(t_address, t_value, t_size, 'write')
+
+    @cocotb.coroutine
+    async def read(self, address: Union[int, Sequence[int]],
+                   size: Optional[Union[int, Sequence[int]]] = None,
+                   pip: Optional[bool] = False) -> Sequence[AHBResp]:
+        """Read data from the AHB bus."""
+
+        if size is None:
+            size = [self.bus._data_width // 8 for _ in range(len(address))]
+        else:
+            for sz in size:
+                AHBLiteMaster._check_size(sz, len(self.bus.hwdata) // 8)
+
+        # Convert all inputs into lists, if not already
+        if not isinstance(address, list):
+            address = [address]
+        if not isinstance(size, list):
+            size = [size]
+
+        # First check if the input sizes are correct
+        if len(address) != len(size):
+            raise Exception(f'Address length ({len(address)}) is'
+                            f'different from size length ({len(size)})')
+
+        # Need to copy data as we'll have to shift address/size
+        t_address = copy.deepcopy(address)
+        t_value = [0x00 for i in range(len(address))]
+        t_size = copy.deepcopy(size)
+
+        width = len(self.bus.haddr)
+        t_address = self._create_vector(t_address, width, 'address_phase', pip)
+        width = len(self.bus.hwdata)
+        t_value = self._create_vector(t_value, width, 'data_phase', pip)
+        width = len(self.bus.hsize)
+        t_size = self._create_vector(t_size, width, 'address_phase', pip)
+
+        return await self._send_txn(t_address, t_value, t_size, 'read')

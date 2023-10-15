@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 14.10.2023
+# Last Modified Date: 15.10.2023
 
 import cocotb
 import os
@@ -66,6 +66,8 @@ async def run_test(dut):
     resp = await ahb_lite_master.write(address, value, size, pip=False)
     resp = await ahb_lite_master.write(address, value, size, pip=True)
     resp = await ahb_lite_master.write(address, value, size, pip=True)
+    
+    resp = await ahb_lite_master.read(address, pip=True)
 
     print(resp)
 
