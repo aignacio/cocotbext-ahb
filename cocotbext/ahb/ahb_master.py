@@ -16,7 +16,7 @@ from .version import __version__
 
 from cocotb.triggers import RisingEdge
 from typing import Optional, Sequence, Union
-from cocotb.types import LogicArray
+from cocotb.types import LogicArray, Logic
 from cocotb.binary import BinaryValue
 
 
@@ -145,12 +145,21 @@ class AHBLiteMaster:
             self.bus.hwdata.value = txn_data
             await RisingEdge(self.clk)
             timeout_counter = 0
-            while self.bus.hready.value != 1:
-                timeout_counter += 1
-                if timeout_counter == self.timeout:
-                    raise Exception(f'Timeout value of {timeout_counter}'
-                                    f' clock cycles has been reached!')
-                await RisingEdge(self.clk)
+           
+            if self.bus.hready.value.is_resolvable is False:
+                while self.bus.hready.value.is_resolvable is False:
+                    timeout_counter += 1
+                    if timeout_counter == self.timeout:
+                        raise Exception(f'Timeout value of {timeout_counter}'
+                                        f' clock cycles has been reached!')
+                    await RisingEdge(self.clk)
+            else:
+                while self.bus.hready.value != 1:
+                    timeout_counter += 1
+                    if timeout_counter == self.timeout:
+                        raise Exception(f'Timeout value of {timeout_counter}'
+                                        f' clock cycles has been reached!')
+                    await RisingEdge(self.clk)
 
             if first_txn:
                 first_txn = False
@@ -158,6 +167,7 @@ class AHBLiteMaster:
                 response += [{'resp': AHBResp(int(self.bus.hresp.value)),
                               'data': self.bus.hrdata.value}]
         self._init_bus()
+        return response
 
     @cocotb.coroutine
     async def write(self, address: Union[int, Sequence[int]],

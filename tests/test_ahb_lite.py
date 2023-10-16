@@ -14,7 +14,7 @@ from const import cfg
 from cocotb_test.simulator import run
 from cocotb.triggers import ClockCycles
 from cocotb.clock import Clock
-from cocotbext.ahb import AHBBus, AHBLiteMaster, AHBMaster
+from cocotbext.ahb import AHBBus, AHBLiteMaster, AHBMaster, AHBLiteSlave
 
 
 def rnd_val(bit: int = 0, zero: bool = True):
@@ -41,31 +41,36 @@ async def setup_dut(dut, cycles):
 
 @cocotb.test()
 async def run_test(dut):
+    await setup_dut(dut, cfg.RST_CYCLES)
+    
     ahb_lite_master = AHBLiteMaster(AHBBus.from_prefix(dut, "slave"),
                                     dut.hclk,
                                     dut.hresetn,
                                     def_val='Z')
-    await setup_dut(dut, cfg.RST_CYCLES)
-    dut.master_hready.value = 1
-    dut.master_hresp.value = 0
-    dut.master_hrdata.value = 0
+    ahb_lite_slave = AHBLiteSlave(AHBBus.from_prefix(dut, "master"),
+                                  dut.hclk,
+                                  dut.hresetn,
+                                  def_val=1)
+
+    # dut.master_hready.value = 1
+    # dut.master_hresp.value = 0
+    # dut.master_hrdata.value = 0
 
     address = [rnd_val(32) for _ in range(200)]
     value = [rnd_val(32) for _ in range(200)]
     size = [pick_random_value([1, 2, 4]) for _ in range(200)]
 
-    resp = await ahb_lite_master.write(address, value, pip=True)
-    resp = await ahb_lite_master.write(address, value, pip=False)
-    resp = await ahb_lite_master.write(address, value, pip=True)
-    resp = await ahb_lite_master.write(address, value, pip=False)
+    # resp = await ahb_lite_master.write(address, value, pip=True)
+    # resp = await ahb_lite_master.write(address, value, pip=False)
+    # resp = await ahb_lite_master.write(address, value, pip=True)
+    # resp = await ahb_lite_master.write(address, value, pip=False)
 
-    resp = await ahb_lite_master.write(address, value, size, pip=False)
-    resp = await ahb_lite_master.write(address, value, size, pip=False)
+    # resp = await ahb_lite_master.write(address, value, size, pip=False)
+    # resp = await ahb_lite_master.write(address, value, size, pip=False)
+    # resp = await ahb_lite_master.write(address, value, size, pip=True)
     resp = await ahb_lite_master.write(address, value, size, pip=True)
-    resp = await ahb_lite_master.write(address, value, size, pip=True)
-
+    print(resp)
     resp = await ahb_lite_master.read(address, pip=True)
-
     print(resp)
 
 
