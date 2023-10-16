@@ -42,7 +42,7 @@ async def setup_dut(dut, cycles):
 @cocotb.test()
 async def run_test(dut):
     await setup_dut(dut, cfg.RST_CYCLES)
-    
+
     ahb_lite_master = AHBLiteMaster(AHBBus.from_prefix(dut, "slave"),
                                     dut.hclk,
                                     dut.hresetn,
@@ -55,7 +55,7 @@ async def run_test(dut):
     # dut.master_hready.value = 1
     # dut.master_hresp.value = 0
     # dut.master_hrdata.value = 0
-
+    print(type(ahb_lite_slave))
     address = [rnd_val(32) for _ in range(200)]
     value = [rnd_val(32) for _ in range(200)]
     size = [pick_random_value([1, 2, 4]) for _ in range(200)]

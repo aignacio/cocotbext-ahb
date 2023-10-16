@@ -145,7 +145,7 @@ class AHBLiteMaster:
             self.bus.hwdata.value = txn_data
             await RisingEdge(self.clk)
             timeout_counter = 0
-           
+
             if self.bus.hready.value.is_resolvable is False:
                 while self.bus.hready.value.is_resolvable is False:
                     timeout_counter += 1
