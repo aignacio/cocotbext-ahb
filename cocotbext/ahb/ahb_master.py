@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 15.10.2023
+# Last Modified Date: 16.10.2023
 
 import cocotb
 import logging
@@ -22,16 +22,17 @@ from cocotb.binary import BinaryValue
 
 class AHBLiteMaster:
     def __init__(self, bus: AHBBus, clock: str, reset: str,
-                 timeout: int = 100, def_val: Union[int, str] = 'Z', **kwargs):
+                 timeout: int = 100, def_val: Union[int, str] = 'Z',
+                 name: str = 'ahb_lite', **kwargs):
         self.bus = bus
         self.clk = clock
         self.rst = reset
         self.timeout = timeout
         self.def_val = def_val
-        self.log = logging.getLogger(f"cocotb.ahb_lite.{bus._name}."
+        self.log = logging.getLogger(f"cocotb.{name}.{bus._name}."
                                      f"{bus._entity._name}")
         self._init_bus()
-        self.log.info("AHB lite master")
+        self.log.info(f"AHB ({name}) master")
         self.log.info("cocotbext-ahb version %s", __version__)
         self.log.info("Copyright (c) 2023 Anderson Ignacio da Silva")
         self.log.info("https://github.com/aignacio/cocotbext-ahb")
@@ -238,3 +239,10 @@ class AHBLiteMaster:
         t_size = self._create_vector(t_size, width, 'address_phase', pip)
 
         return await self._send_txn(t_address, t_value, t_size, 'read')
+
+
+class AHBMaster(AHBLiteMaster):
+    def __init__(self, bus: AHBBus, clock: str, reset: str,
+                 timeout: int = 100, def_val: Union[int, str] = 'Z', **kwargs):
+        super().__init__(bus, clock, reset, timeout,
+                         def_val, 'ahb_full', **kwargs)

@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 15.10.2023
+# Last Modified Date: 16.10.2023
 
 import cocotb
 import os
@@ -14,7 +14,7 @@ from const import cfg
 from cocotb_test.simulator import run
 from cocotb.triggers import ClockCycles
 from cocotb.clock import Clock
-from cocotbext.ahb import AHBBus, AHBLiteMaster
+from cocotbext.ahb import AHBBus, AHBLiteMaster, AHBMaster
 
 
 def rnd_val(bit: int = 0, zero: bool = True):
@@ -25,9 +25,6 @@ def rnd_val(bit: int = 0, zero: bool = True):
 
 
 def pick_random_value(input_list):
-    """
-    Pick a random value from the given list.
-    """
     if input_list:
         return random.choice(input_list)
     else:
