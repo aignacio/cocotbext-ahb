@@ -68,9 +68,13 @@ async def run_test(dut):
     # resp = await ahb_lite_master.write(address, value, size, pip=False)
     # resp = await ahb_lite_master.write(address, value, size, pip=False)
     # resp = await ahb_lite_master.write(address, value, size, pip=True)
-    resp = await ahb_lite_master.write(address, value, size, pip=True)
+
+    address = [rnd_val(32) for _ in range(2)]
+    value = [rnd_val(32) for _ in range(2)]
+    size = [pick_random_value([1, 2, 4]) for _ in range(2)]
+    resp = await ahb_lite_master.b2b(address, value, size, mode='rd_after_wr')
     print(resp)
-    resp = await ahb_lite_master.read(address, pip=True)
+    resp = await ahb_lite_master.b2b(address, value, size, mode='wr_after_rd')
     print(resp)
 
 

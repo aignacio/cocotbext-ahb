@@ -50,3 +50,10 @@ class AHBLiteSlave:
     def _get_def(self, width: int = 1) -> BinaryValue:
         """Return a handle obj with the default value"""
         return LogicArray([self.def_val for _ in range(width)])
+
+
+class AHBSlave(AHBLiteSlave):
+    def __init__(self, bus: AHBBus, clock: str, reset: str,
+                 timeout: int = 100, def_val: Union[int, str] = 'Z', **kwargs):
+        super().__init__(bus, clock, reset, timeout,
+                         def_val, 'ahb_full', **kwargs)

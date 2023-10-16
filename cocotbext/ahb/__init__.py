@@ -14,5 +14,5 @@
 # ex. with this:
 # from cocotbext.ahb import AHBLiteMaster, AHBBus
 from .ahb_master import AHBLiteMaster, AHBMaster
-from .ahb_slave import AHBLiteSlave
+from .ahb_slave import AHBLiteSlave, AHBSlave
 from .ahb_bus import AHBBus
