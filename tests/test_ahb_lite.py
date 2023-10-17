@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 16.10.2023
+# Last Modified Date: 17.10.2023
 
 import cocotb
 import os
@@ -60,21 +60,33 @@ async def run_test(dut):
     value = [rnd_val(32) for _ in range(200)]
     size = [pick_random_value([1, 2, 4]) for _ in range(200)]
 
-    # resp = await ahb_lite_master.write(address, value, pip=True)
-    # resp = await ahb_lite_master.write(address, value, pip=False)
-    # resp = await ahb_lite_master.write(address, value, pip=True)
-    # resp = await ahb_lite_master.write(address, value, pip=False)
+    resp = await ahb_lite_master.write(address, value, pip=True)
+    resp = await ahb_lite_master.write(address, value, pip=False)
+    resp = await ahb_lite_master.write(address, value, pip=True)
+    resp = await ahb_lite_master.write(address, value, pip=False)
 
-    # resp = await ahb_lite_master.write(address, value, size, pip=False)
-    # resp = await ahb_lite_master.write(address, value, size, pip=False)
-    # resp = await ahb_lite_master.write(address, value, size, pip=True)
+    resp = await ahb_lite_master.write(address, value, size, pip=False)
+    resp = await ahb_lite_master.write(address, value, size, pip=False)
+    resp = await ahb_lite_master.write(address, value, size, pip=True)
 
     address = [rnd_val(32) for _ in range(2)]
     value = [rnd_val(32) for _ in range(2)]
     size = [pick_random_value([1, 2, 4]) for _ in range(2)]
-    resp = await ahb_lite_master.b2b(address, value, size, mode='rd_after_wr')
+
+    mode = [0, 1]
+    resp = await ahb_lite_master.custom(address, value, mode, size)
     print(resp)
-    resp = await ahb_lite_master.b2b(address, value, size, mode='wr_after_rd')
+    mode = [1, 0]
+    resp = await ahb_lite_master.custom(address, value, mode, size)
+    print(resp)
+
+    mode = [0, 1]
+    resp = await ahb_lite_master.custom(address, value, mode,
+                                        size, pip=False)
+    print(resp)
+    mode = [1, 0]
+    resp = await ahb_lite_master.custom(address, value, mode,
+                                        size, pip=False)
     print(resp)
 
 
