@@ -4,13 +4,13 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 17.10.2023
+# Last Modified Date: 22.10.2023
 
 import cocotb
 import logging
 import copy
 
-from .ahb_types import AHBTrans, AHBWrite, AHBSize, AHBResp
+from .ahb_types import AHBTrans, AHBWrite, AHBSize, AHBResp, AHBBurst
 from .ahb_bus import AHBBus
 from .version import __version__
 
@@ -85,6 +85,10 @@ class AHBLiteMaster:
         self.bus.hwrite.value = mode
         if self.bus.hsel_exist:
             self.bus.hsel.value = 1
+        if self.bus.hready_in_exist:
+            self.bus.hready_in.value = 1
+        if self.bus.hburst_exist:
+            self.bus.hburst.value = AHBBurst.SINGLE
 
     def _create_vector(self, vec: Sequence[int],
                        width: int,
@@ -215,10 +219,10 @@ class AHBLiteMaster:
         width = len(self.bus.hsize)
         t_size = self._create_vector(t_size, width, 'address_ph', pip)
         # Default signaling
-        t_mode = [AHBWrite(0b1) for _ in range(len(t_address))]
+        t_mode = [AHBWrite.WRITE for _ in range(len(t_address))]
         width = len(self.bus.hwrite)
         t_mode = self._create_vector(t_mode, width, 'address_ph', pip)
-        t_trans = [AHBTrans(0b10) for _ in range(len(t_address))]
+        t_trans = [AHBTrans.NONSEQ for _ in range(len(t_address))]
         width = len(self.bus.htrans)
         t_trans = self._create_vector(t_trans, width, 'address_ph', pip)
 
@@ -260,10 +264,10 @@ class AHBLiteMaster:
         width = len(self.bus.hsize)
         t_size = self._create_vector(t_size, width, 'address_ph', pip)
         # Default signaling
-        t_mode = [AHBWrite(0b0) for _ in range(len(t_address))]
+        t_mode = [AHBWrite.READ for _ in range(len(t_address))]
         width = len(self.bus.hwrite)
         t_mode = self._create_vector(t_mode, width, 'address_ph', pip)
-        t_trans = [AHBTrans(0b10) for _ in range(len(t_address))]
+        t_trans = [AHBTrans.NONSEQ for _ in range(len(t_address))]
         width = len(self.bus.htrans)
         t_trans = self._create_vector(t_trans, width, 'address_ph', pip)
 
@@ -316,7 +320,7 @@ class AHBLiteMaster:
         width = len(self.bus.hwrite)
         t_mode = self._create_vector(t_mode, width, 'address_ph', pip)
         width = len(self.bus.htrans)
-        t_trans = [AHBTrans(0b10) for _ in range(len(t_address))]
+        t_trans = [AHBTrans.NONSEQ for _ in range(len(t_address))]
         width = len(self.bus.htrans)
         t_trans = self._create_vector(t_trans, width, 'address_ph', pip)
 

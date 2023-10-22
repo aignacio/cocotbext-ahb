@@ -1,19 +1,19 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Tue Oct 10 19:50:18 2023
+[*] Sun Oct 22 10:23:45 2023
 [*]
 [dumpfile] "run_dir/sim_build_icarus_test_ahb_lite/ahb_template.fst"
-[dumpfile_mtime] "Tue Oct 10 19:49:34 2023"
-[dumpfile_size] 1093
+[dumpfile_mtime] "Sun Oct 22 10:19:54 2023"
+[dumpfile_size] 2878
 [savefile] "/Users/aignacio/projects/cocotbext-ahb/docs_utils/template.gtkw"
-[timestart] 0
-[size] 2864 759
-[pos] 1977 -885
-*-14.506138 24280 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[timestart] 1926470
+[size] 2248 1028
+[pos] 1977 0
+*-13.691751 1976810 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [sst_width] 253
 [signals_width] 263
 [sst_expanded] 1
-[sst_vpaned_height] 175
+[sst_vpaned_height] 252
 @28
 ahb_template.hresetn
 ahb_template.hclk
@@ -29,6 +29,7 @@ ahb_template.slave_hwrite
 @22
 ahb_template.slave_hwdata[31:0]
 @28
+ahb_template.slave_hready_in
 ahb_template.slave_hready
 ahb_template.slave_hresp
 @22
@@ -41,10 +42,11 @@ ahb_template.master_haddr[31:0]
 @28
 ahb_template.master_hsize[2:0]
 ahb_template.master_htrans[1:0]
-@29
 ahb_template.master_hwrite
 @22
 ahb_template.master_hwdata[31:0]
+@29
+ahb_template.master_hready_in
 @28
 ahb_template.master_hready
 ahb_template.master_hresp

@@ -28,6 +28,7 @@ module ahb_template #(
   input   [1:0]               slave_htrans,
   input   [(DATA_WIDTH-1):0]  slave_hwdata,
   input                       slave_hwrite,
+  input                       slave_hready_in,
   // From slave to interconnect/master 
   output  [(DATA_WIDTH-1):0]  slave_hrdata,
   output                      slave_hready,
@@ -37,6 +38,7 @@ module ahb_template #(
   // MASTER - OUT
   //---------------------------------------
   // From master/interconnect to slave/decoder 
+  output  [(ADDR_WIDTH-1):0]  master_hsel,
   output  [(ADDR_WIDTH-1):0]  master_haddr,
   output  [2:0]               master_hburst,
   output                      master_hmastlock,
@@ -48,6 +50,7 @@ module ahb_template #(
   output  [1:0]               master_htrans,
   output  [(DATA_WIDTH-1):0]  master_hwdata,
   output                      master_hwrite,
+  output                      master_hready_in,
   // From slave to interconnect/master
   input   [(DATA_WIDTH-1):0]  master_hrdata,
   input                       master_hready,
@@ -65,6 +68,8 @@ module ahb_template #(
   assign master_htrans    = slave_htrans;
   assign master_hwdata    = slave_hwdata;
   assign master_hwrite    = slave_hwrite;
+  assign master_hready_in = slave_hready_in;
+  assign master_hsel      = slave_hsel;
 
   assign slave_hrdata     = master_hrdata;
   assign slave_hready     = master_hready;

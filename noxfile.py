@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 08.10.2023
+# Last Modified Date: 22.10.2023
 
 import nox
 
@@ -29,5 +29,6 @@ def run(session):
 @nox.session(python=["3.9", "3.10"])
 def lint(session):
     session.install('flake8')
-    session.run('flake8', '--ignore=F401')
+    # session.run('flake8','--exclude=cocotbext/ahb/__init__.py')
+    session.run('flake8', '--ignore=F401,W504')
     # session.run('flake8','--exclude=__init__.py')

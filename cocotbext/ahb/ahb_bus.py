@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 08.10.2023
+# Last Modified Date: 22.10.2023
 
 from cocotb_bus.drivers import Bus
 from cocotb.handle import SimHandleBase
@@ -16,7 +16,7 @@ class AHBBus(Bus):
                 "hrdata", "hwrite", "hready", "hresp"]
 
     _optional_signals = ["hburst", "hmastlock", "hprot", "hnonsec",
-                         "hexcl", "hmaster", "hexokay", "hsel"]
+                         "hexcl", "hmaster", "hexokay", "hsel", "hready_in"]
 
     def __init__(self, entity: SimHandleBase = None,
                  prefix: str = None, **kwargs: Any) -> None:
@@ -38,6 +38,14 @@ class AHBBus(Bus):
     @property
     def hsel_exist(self):
         return True if 'hsel' in self._signals else False
+
+    @property
+    def hready_in_exist(self):
+        return True if 'hready_in' in self._signals else False
+
+    @property
+    def hburst_exist(self):
+        return True if 'hburst' in self._signals else False
 
     @classmethod
     def from_entity(cls, entity, **kwargs):

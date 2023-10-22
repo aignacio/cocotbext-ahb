@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 17.10.2023
+# Last Modified Date: 22.10.2023
 
 import cocotb
 import os
@@ -50,12 +50,10 @@ async def run_test(dut):
     ahb_lite_slave = AHBLiteSlave(AHBBus.from_prefix(dut, "master"),
                                   dut.hclk,
                                   dut.hresetn,
-                                  def_val=1)
+                                  def_val=0)
 
-    # dut.master_hready.value = 1
-    # dut.master_hresp.value = 0
-    # dut.master_hrdata.value = 0
-    print(type(ahb_lite_slave))
+    type(ahb_lite_slave)
+
     address = [rnd_val(32) for _ in range(200)]
     value = [rnd_val(32) for _ in range(200)]
     size = [pick_random_value([1, 2, 4]) for _ in range(200)]
@@ -76,6 +74,7 @@ async def run_test(dut):
     mode = [0, 1]
     resp = await ahb_lite_master.custom(address, value, mode, size)
     print(resp)
+
     mode = [1, 0]
     resp = await ahb_lite_master.custom(address, value, mode, size)
     print(resp)
