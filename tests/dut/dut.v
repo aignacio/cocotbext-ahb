@@ -38,7 +38,7 @@ module ahb_template #(
   // MASTER - OUT
   //---------------------------------------
   // From master/interconnect to slave/decoder 
-  output  [(ADDR_WIDTH-1):0]  master_hsel,
+  output                      master_hsel,
   output  [(ADDR_WIDTH-1):0]  master_haddr,
   output  [2:0]               master_hburst,
   output                      master_hmastlock,

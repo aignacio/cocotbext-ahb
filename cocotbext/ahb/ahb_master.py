@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 22.10.2023
+# Last Modified Date: 23.10.2023
 
 import cocotb
 import logging
@@ -21,16 +21,24 @@ from cocotb.binary import BinaryValue
 
 
 class AHBLiteMaster:
-    def __init__(self, bus: AHBBus, clock: str, reset: str,
-                 timeout: int = 100, def_val: Union[int, str] = 'Z',
-                 name: str = 'ahb_lite', **kwargs):
+    def __init__(
+        self,
+        bus: AHBBus,
+        clock: str,
+        reset: str,
+        timeout: int = 100,
+        def_val: Union[int, str] = "Z",
+        name: str = "ahb_lite",
+        **kwargs,
+    ):
         self.bus = bus
         self.clk = clock
         self.rst = reset
         self.timeout = timeout
         self.def_val = def_val
-        self.log = logging.getLogger(f"cocotb.{name}.{bus._name}."
-                                     f"{bus._entity._name}")
+        self.log = logging.getLogger(
+            f"cocotb.{name}.{bus._name}." f"{bus._entity._name}"
+        )
         self._init_bus()
         self.log.info(f"AHB ({name}) master")
         self.log.info("cocotbext-ahb version %s", __version__)
@@ -67,22 +75,22 @@ class AHBLiteMaster:
     def _check_size(size: int, data_bus_width: int) -> None:
         """Check that the provided transfer size is valid."""
         if size > data_bus_width:
-            raise ValueError("Size of the transfer ({} B)"
-                             " provided is larger than the bus width "
-                             "({} B)".format(size, data_bus_width))
+            raise ValueError(
+                "Size of the transfer ({} B)"
+                " provided is larger than the bus width "
+                "({} B)".format(size, data_bus_width)
+            )
         elif size <= 0 or (size & (size - 1)) != 0:
-            raise ValueError(f"Error -> {size} - Size must"
-                             "be a positive power of 2")
+            raise ValueError(f"Error -> {size} - Size must" f"be a positive power of 2")
 
-    def _addr_phase(self, addr: int,
-                    size: int,
-                    mode: AHBWrite,
-                    trans: AHBTrans):
+    def _addr_phase(self, addr: int, size: int, mode: AHBWrite, trans: AHBTrans):
         """Drive the AHB signals of the address phase."""
         self.bus.haddr.value = addr
         self.bus.htrans.value = trans
         self.bus.hsize.value = self._convert_size(size)
         self.bus.hwrite.value = mode
+
+        # Optional signals
         if self.bus.hsel_exist:
             self.bus.hsel.value = 1
         if self.bus.hready_in_exist:
@@ -90,10 +98,9 @@ class AHBLiteMaster:
         if self.bus.hburst_exist:
             self.bus.hburst.value = AHBBurst.SINGLE
 
-    def _create_vector(self, vec: Sequence[int],
-                       width: int,
-                       phase: str,
-                       pip: Optional[bool] = False) -> Sequence[int]:
+    def _create_vector(
+        self, vec: Sequence[int], width: int, phase: str, pip: Optional[bool] = False
+    ) -> Sequence[int]:
         """Create a list to be driven during address/data phase."""
         vec_out = []
         if pip:
@@ -103,10 +110,10 @@ class AHBLiteMaster:
             # Data
             # |  default val |   DATA 0  | ... |    DATA N     |
 
-            if phase == 'address_ph':
+            if phase == "address_ph":
                 vec_out = vec
                 vec_out.append(self._get_def(width))
-            elif phase == 'data_ph':
+            elif phase == "data_ph":
                 vec_out = vec
                 vec_out.insert(0, self._get_def(width))
         else:
@@ -116,41 +123,49 @@ class AHBLiteMaster:
             # Data
             # |  default val |     DATA 0    | default value |    DATA 1     |
 
-            if phase == 'address_ph':
+            if phase == "address_ph":
                 for i in vec:
                     vec_out.append(i)
                     vec_out.append(self._get_def(width))
-            elif phase == 'data_ph':
+            elif phase == "data_ph":
                 for i in vec:
                     vec_out.append(self._get_def(width))
                     vec_out.append(i)
         return vec_out
 
     @cocotb.coroutine
-    async def _send_txn(self, address: Sequence[int],
-                        value: Sequence[int],
-                        size: Sequence[int],
-                        mode: Sequence[AHBWrite],
-                        trans: Sequence[AHBTrans]) -> Sequence[AHBResp]:
+    async def _send_txn(
+        self,
+        address: Sequence[int],
+        value: Sequence[int],
+        size: Sequence[int],
+        mode: Sequence[AHBWrite],
+        trans: Sequence[AHBTrans],
+    ) -> Sequence[AHBResp]:
         """Drives the AHB transaction into the bus."""
         response = []
         first_txn = True
 
-        for index, (txn_addr, txn_data, txn_size,
-                    txn_mode, txn_trans) in enumerate(
-                zip(address, value, size, mode, trans)):
+        for index, (txn_addr, txn_data, txn_size, txn_mode, txn_trans) in enumerate(
+            zip(address, value, size, mode, trans)
+        ):
             if index == len(address) - 1:
                 self._init_bus()
             else:
                 self._addr_phase(txn_addr, txn_size, txn_mode, txn_trans)
                 if txn_addr != self.def_val:
                     if not isinstance(txn_addr, LogicArray):
-                        op = 'write' if txn_mode == 1 else 'read'
-                        self.log.info(f"AHB {op} txn:\n"
-                                      f"\tADDR = 0x{txn_addr:x}\n"
-                                      f"\tDATA = 0x{value[index+1]:x}\n"
-                                      f"\tSIZE = {txn_size}")
+                        op = "write" if txn_mode == 1 else "read"
+                        self.log.info(
+                            f"AHB {op} txn:\n"
+                            f"\tADDR = 0x{txn_addr:x}\n"
+                            f"\tDATA = 0x{value[index+1]:x}\n"
+                            f"\tSIZE = {txn_size}"
+                        )
             self.bus.hwdata.value = txn_data
+            if self.bus.hready_in_exist:
+                self.bus.hready_in.value = 1
+
             await RisingEdge(self.clk)
             timeout_counter = 0
 
@@ -158,31 +173,45 @@ class AHBLiteMaster:
                 while self.bus.hready.value.is_resolvable is False:
                     timeout_counter += 1
                     if timeout_counter == self.timeout:
-                        raise Exception(f'Timeout value of {timeout_counter}'
-                                        f' clock cycles has been reached!')
+                        raise Exception(
+                            f"Timeout value of {timeout_counter}"
+                            f" clock cycles has been reached!"
+                        )
                     await RisingEdge(self.clk)
             else:
                 while self.bus.hready.value != 1:
                     timeout_counter += 1
                     if timeout_counter == self.timeout:
-                        raise Exception(f'Timeout value of {timeout_counter}'
-                                        f' clock cycles has been reached!')
+                        raise Exception(
+                            f"Timeout value of {timeout_counter}"
+                            f" clock cycles has been reached!"
+                        )
                     await RisingEdge(self.clk)
 
             if first_txn:
                 first_txn = False
             else:
-                response += [{'resp': AHBResp(int(self.bus.hresp.value)),
-                              'data': self.bus.hrdata.value}]
+                response += [
+                    {
+                        "resp": AHBResp(int(self.bus.hresp.value)),
+                        "data": self.bus.hrdata.value,
+                    }
+                ]
         self._init_bus()
         return response
 
     @cocotb.coroutine
-    async def write(self, address: Union[int, Sequence[int]],
-                    value: Union[int, Sequence[int]],
-                    size: Optional[Union[int, Sequence[int]]] = None,
-                    pip: Optional[bool] = False) -> Sequence[AHBResp]:
+    async def write(
+        self,
+        address: Union[int, Sequence[int]],
+        value: Union[int, Sequence[int]],
+        size: Optional[Union[int, Sequence[int]]] = None,
+        pip: Optional[bool] = False,
+    ) -> Sequence[AHBResp]:
         """Write data in the AHB bus."""
+
+        if not isinstance(address, list):
+            address = [address]
 
         if size is None:
             size = [self.bus._data_width // 8 for _ in range(len(address))]
@@ -191,8 +220,7 @@ class AHBLiteMaster:
                 AHBLiteMaster._check_size(sz, len(self.bus.hwdata) // 8)
 
         # Convert all inputs into lists, if not already
-        if not isinstance(address, list):
-            address = [address]
+
         if not isinstance(value, list):
             value = [value]
         if not isinstance(size, list):
@@ -200,12 +228,16 @@ class AHBLiteMaster:
 
         # First check if the input sizes are correct
         if len(address) != len(value):
-            raise Exception(f'Address length ({len(address)}) is'
-                            f'different from data length ({len(value)})')
+            raise Exception(
+                f"Address length ({len(address)}) is"
+                f"different from data length ({len(value)})"
+            )
 
         if len(address) != len(size):
-            raise Exception(f'Address length ({len(address)}) is'
-                            f'different from size length ({len(size)})')
+            raise Exception(
+                f"Address length ({len(address)}) is"
+                f"different from size length ({len(size)})"
+            )
 
         # Need to copy data as we'll have to shift address/value
         t_address = copy.deepcopy(address)
@@ -213,26 +245,28 @@ class AHBLiteMaster:
         t_size = copy.deepcopy(size)
 
         width = len(self.bus.haddr)
-        t_address = self._create_vector(t_address, width, 'address_ph', pip)
+        t_address = self._create_vector(t_address, width, "address_ph", pip)
         width = len(self.bus.hwdata)
-        t_value = self._create_vector(t_value, width, 'data_ph', pip)
+        t_value = self._create_vector(t_value, width, "data_ph", pip)
         width = len(self.bus.hsize)
-        t_size = self._create_vector(t_size, width, 'address_ph', pip)
+        t_size = self._create_vector(t_size, width, "address_ph", pip)
         # Default signaling
         t_mode = [AHBWrite.WRITE for _ in range(len(t_address))]
         width = len(self.bus.hwrite)
-        t_mode = self._create_vector(t_mode, width, 'address_ph', pip)
+        t_mode = self._create_vector(t_mode, width, "address_ph", pip)
         t_trans = [AHBTrans.NONSEQ for _ in range(len(t_address))]
         width = len(self.bus.htrans)
-        t_trans = self._create_vector(t_trans, width, 'address_ph', pip)
+        t_trans = self._create_vector(t_trans, width, "address_ph", pip)
 
-        return await self._send_txn(t_address, t_value, t_size,
-                                    t_mode, t_trans)
+        return await self._send_txn(t_address, t_value, t_size, t_mode, t_trans)
 
     @cocotb.coroutine
-    async def read(self, address: Union[int, Sequence[int]],
-                   size: Optional[Union[int, Sequence[int]]] = None,
-                   pip: Optional[bool] = False) -> Sequence[AHBResp]:
+    async def read(
+        self,
+        address: Union[int, Sequence[int]],
+        size: Optional[Union[int, Sequence[int]]] = None,
+        pip: Optional[bool] = False,
+    ) -> Sequence[AHBResp]:
         """Read data from the AHB bus."""
 
         if size is None:
@@ -249,8 +283,10 @@ class AHBLiteMaster:
 
         # First check if the input sizes are correct
         if len(address) != len(size):
-            raise Exception(f'Address length ({len(address)}) is'
-                            f'different from size length ({len(size)})')
+            raise Exception(
+                f"Address length ({len(address)}) is"
+                f"different from size length ({len(size)})"
+            )
 
         # Need to copy data as we'll have to shift address/size
         t_address = copy.deepcopy(address)
@@ -258,40 +294,46 @@ class AHBLiteMaster:
         t_size = copy.deepcopy(size)
 
         width = len(self.bus.haddr)
-        t_address = self._create_vector(t_address, width, 'address_ph', pip)
+        t_address = self._create_vector(t_address, width, "address_ph", pip)
         width = len(self.bus.hwdata)
-        t_value = self._create_vector(t_value, width, 'data_ph', pip)
+        t_value = self._create_vector(t_value, width, "data_ph", pip)
         width = len(self.bus.hsize)
-        t_size = self._create_vector(t_size, width, 'address_ph', pip)
+        t_size = self._create_vector(t_size, width, "address_ph", pip)
         # Default signaling
         t_mode = [AHBWrite.READ for _ in range(len(t_address))]
         width = len(self.bus.hwrite)
-        t_mode = self._create_vector(t_mode, width, 'address_ph', pip)
+        t_mode = self._create_vector(t_mode, width, "address_ph", pip)
         t_trans = [AHBTrans.NONSEQ for _ in range(len(t_address))]
         width = len(self.bus.htrans)
-        t_trans = self._create_vector(t_trans, width, 'address_ph', pip)
+        t_trans = self._create_vector(t_trans, width, "address_ph", pip)
 
-        return await self._send_txn(t_address, t_value, t_size,
-                                    t_mode, t_trans)
+        return await self._send_txn(t_address, t_value, t_size, t_mode, t_trans)
 
     @cocotb.coroutine
-    async def custom(self, address: Union[int, Sequence[int]],
-                     value: Union[int, Sequence[int]],
-                     mode: Union[int, Sequence[int]],
-                     size: Optional[Union[int, Sequence[int]]] = None,
-                     pip: Optional[bool] = True) -> Sequence[AHBResp]:
+    async def custom(
+        self,
+        address: Union[int, Sequence[int]],
+        value: Union[int, Sequence[int]],
+        mode: Union[int, Sequence[int]],
+        size: Optional[Union[int, Sequence[int]]] = None,
+        pip: Optional[bool] = True,
+    ) -> Sequence[AHBResp]:
         """Back-to-Back operation"""
 
         if len(address) != len(value):
-            raise Exception(f'Length address {len(address)} is diff from'
-                            f' length value {len(value)}!')
+            raise Exception(
+                f"Length address {len(address)} is diff from"
+                f" length value {len(value)}!"
+            )
 
         if size is None:
             size = [self.bus._data_width // 8 for _ in range(len(address))]
         else:
             if len(address) != len(mode):
-                raise Exception(f'Length address {len(address)} is diff from'
-                                f' length mode {len(mode)}!')
+                raise Exception(
+                    f"Length address {len(address)} is diff from"
+                    f" length mode {len(mode)}!"
+                )
             for sz in size:
                 AHBLiteMaster._check_size(sz, len(self.bus.hwdata) // 8)
 
@@ -312,24 +354,29 @@ class AHBLiteMaster:
         t_mode = copy.deepcopy(mode)
 
         width = len(self.bus.haddr)
-        t_address = self._create_vector(t_address, width, 'address_ph', pip)
+        t_address = self._create_vector(t_address, width, "address_ph", pip)
         width = len(self.bus.hwdata)
-        t_value = self._create_vector(t_value, width, 'data_ph', pip)
+        t_value = self._create_vector(t_value, width, "data_ph", pip)
         width = len(self.bus.hsize)
-        t_size = self._create_vector(t_size, width, 'address_ph', pip)
+        t_size = self._create_vector(t_size, width, "address_ph", pip)
         width = len(self.bus.hwrite)
-        t_mode = self._create_vector(t_mode, width, 'address_ph', pip)
+        t_mode = self._create_vector(t_mode, width, "address_ph", pip)
         width = len(self.bus.htrans)
         t_trans = [AHBTrans.NONSEQ for _ in range(len(t_address))]
         width = len(self.bus.htrans)
-        t_trans = self._create_vector(t_trans, width, 'address_ph', pip)
+        t_trans = self._create_vector(t_trans, width, "address_ph", pip)
 
-        return await self._send_txn(t_address, t_value, t_size,
-                                    t_mode, t_trans)
+        return await self._send_txn(t_address, t_value, t_size, t_mode, t_trans)
 
 
 class AHBMaster(AHBLiteMaster):
-    def __init__(self, bus: AHBBus, clock: str, reset: str,
-                 timeout: int = 100, def_val: Union[int, str] = 'Z', **kwargs):
-        super().__init__(bus, clock, reset, timeout,
-                         def_val, 'ahb_full', **kwargs)
+    def __init__(
+        self,
+        bus: AHBBus,
+        clock: str,
+        reset: str,
+        timeout: int = 100,
+        def_val: Union[int, str] = "Z",
+        **kwargs,
+    ):
+        super().__init__(bus, clock, reset, timeout, def_val, "ahb_full", **kwargs)

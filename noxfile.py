@@ -29,6 +29,4 @@ def run(session):
 @nox.session(python=["3.9", "3.10"])
 def lint(session):
     session.install('flake8')
-    # session.run('flake8','--exclude=cocotbext/ahb/__init__.py')
-    session.run('flake8', '--ignore=F401,W504')
-    # session.run('flake8','--exclude=__init__.py')
+    session.run('flake8')

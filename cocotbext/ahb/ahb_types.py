@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 08.10.2023
+# Last Modified Date: 22.10.2023
 
 import enum
 
@@ -43,5 +43,5 @@ class AHBTrans(enum.IntEnum):
 
 
 class AHBWrite(enum.IntEnum):
-    WRITE = 0b0
-    READ = 0b1
+    READ = 0b0
+    WRITE = 0b1
