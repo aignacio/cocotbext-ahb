@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 22.10.2023
+# Last Modified Date: 24.10.2023
 
 import nox
 
@@ -23,7 +23,7 @@ def run(session):
                     'cocotb-test == 0.2.4',
                     'cocotb >= 1.8.0')
     session.install("-e", ".")
-    session.run('pytest', '-rP', '-n', 'auto')
+    session.run('pytest', '-rP', '-n', 'auto', *session.posargs)
 
 
 @nox.session(python=["3.9", "3.10"])

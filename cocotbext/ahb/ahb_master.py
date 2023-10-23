@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 23.10.2023
+# Last Modified Date: 24.10.2023
 
 import cocotb
 import logging
@@ -269,6 +269,9 @@ class AHBLiteMaster:
     ) -> Sequence[AHBResp]:
         """Read data from the AHB bus."""
 
+        if not isinstance(address, list):
+            address = [address]
+
         if size is None:
             size = [self.bus._data_width // 8 for _ in range(len(address))]
         else:
@@ -276,8 +279,6 @@ class AHBLiteMaster:
                 AHBLiteMaster._check_size(sz, len(self.bus.hwdata) // 8)
 
         # Convert all inputs into lists, if not already
-        if not isinstance(address, list):
-            address = [address]
         if not isinstance(size, list):
             size = [size]
 

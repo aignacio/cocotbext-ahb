@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 16.10.2023
-# Last Modified Date: 23.10.2023
+# Last Modified Date: 24.10.2023
 
 import cocotb
 import logging
@@ -73,12 +73,14 @@ class AHBLiteSlave:
     async def _proc_txn(self):
         """Process any incoming txns"""
 
-        started = False
+        wr_start = False
+        rd_start = False
         error = False
         txn_addr = 0
         txn_size = AHBSize.WORD
         txn_type = AHBWrite.READ
 
+        self.bus.hrdata.value = self._get_def(len(self.bus.hrdata))
         while True:
             # Wait for a txn
             await RisingEdge(self.clk)
@@ -87,59 +89,57 @@ class AHBLiteSlave:
 
             # Default values in case there is no txn
             self.bus.hready.value = self._get_def(1)
-            self.bus.hrdata.value = self._get_def(len(self.bus.hrdata))
             self.bus.hresp.value = AHBResp.OKAY
+
+            if self.bp is not None:
+                ready = next(self.bp)
+            else:
+                ready = True
+
+            if ready:
+                self.bus.hready.value = 1
 
             if error:
                 self.bus.hready.value = 1
                 self.bus.hresp.value = AHBResp.ERROR
                 error = False
             else:
-                if self.bp is not None:
-                    ready = next(self.bp)
-                else:
-                    ready = True
+                if rd_start and cur_hready:
+                    rd_start = False
+                    self.bus.hrdata.value = self._get_def(len(self.bus.hrdata))
 
-                if ready:
-                    self.bus.hready.value = 1
+                if wr_start and cur_hready:
+                    wr_start = False
+                    if txn_type == AHBWrite.WRITE:
+                        wr = self._wr(txn_addr, txn_size, self.bus.hwdata.value)
+                        self.bus.hrdata.value = wr
+                        self.bus.hresp.value = AHBResp.OKAY
 
-                    if started:
-                        started = False
-                        if txn_type == AHBWrite.WRITE:
-                            wr = self._wr(txn_addr, txn_size, self.bus.hwdata.value)
-                            self.bus.hrdata.value = wr
-                            self.bus.hresp.value = AHBResp.OKAY
-                        else:
-                            rd = self._rd(txn_addr, txn_size)
-                            self.bus.hrdata.value = rd
-                            self.bus.hresp.value = AHBResp.OKAY
-                    # Check for new txn
-                    if (
-                        cur_hready == 1
-                        and self._check_inputs()
-                        and self._check_valid_txn()
-                    ):
-                        started = True
-                        txn_addr = self.bus.haddr.value
-                        txn_size = AHBSize(self.bus.hsize.value)
-                        txn_type = AHBWrite(self.bus.hwrite.value)
-                        self._check_size(2**txn_size, self.bus.data_width)
+            # Check for new txn
+            if cur_hready == 1 and self._check_inputs() and self._check_valid_txn():
+                txn_addr = self.bus.haddr.value
+                txn_size = AHBSize(self.bus.hsize.value)
+                txn_type = AHBWrite(self.bus.hwrite.value)
+                self._check_size(2**txn_size, self.bus.data_width)
 
-                        if txn_type == AHBWrite.WRITE and self._chk_wr(
-                            txn_addr, txn_size
-                        ):
-                            self.bus.hready.value = 0
-                            error = True
-                            started = False
-                        if txn_type == AHBWrite.READ and self._chk_rd(
-                            txn_addr, txn_size
-                        ):
-                            self.bus.hready.value = 0
-                            error = True
-                            started = False
+                if txn_type == AHBWrite.WRITE:
+                    if not self._chk_wr(txn_addr, txn_size):
+                        self.bus.hready.value = 0
+                        self.bus.hrdata.value = 0
+                        error = True
+                        wr_start = False
+                    else:
+                        wr_start = True
+                        self.bus.hresp.value = AHBResp.OKAY
 
-                else:
-                    self.bus.hready.value = 0
+                if txn_type == AHBWrite.READ:
+                    if not self._chk_rd(txn_addr, txn_size):
+                        self.bus.hready.value = 0
+                        error = True
+                    else:
+                        rd_start = True
+                        self.bus.hrdata.value = self._rd(txn_addr, txn_size)
+                        self.bus.hresp.value = AHBResp.OKAY
 
     @staticmethod
     def _check_size(size: int, data_bus_width: int) -> None:
@@ -198,13 +198,11 @@ class AHBLiteSlave:
         while True:
             yield True
 
-    def _chk_rd(self, addr: int, size: AHBSize) -> AHBResp:
-        # Return some random data when read
-        return AHBResp.OKAY
+    def _chk_rd(self, addr: int, size: AHBSize) -> bool:
+        return True
 
-    def _chk_wr(self, addr: int, size: AHBSize) -> AHBResp:
-        # Return some zero data when write
-        return AHBResp.OKAY
+    def _chk_wr(self, addr: int, size: AHBSize) -> bool:
+        return True
 
     def _rd(self, addr: int, size: AHBSize) -> int:
         # Return some random data when read
@@ -230,15 +228,15 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
         super().__init__(bus, clock, reset, def_val, bp, name, **kwargs)
         self.memory = Memory(size=mem_size)
 
-    def _chk_rd(self, addr: int, size: AHBSize) -> AHBResp:
+    def _chk_rd(self, addr: int, size: AHBSize) -> bool:
         if addr + (2**size) > self.memory.size:
-            return AHBResp.ERROR
-        return AHBResp.OKAY
+            return False
+        return True
 
-    def _chk_wr(self, addr: int, size: AHBSize) -> AHBResp:
+    def _chk_wr(self, addr: int, size: AHBSize) -> bool:
         if addr + (2**size) > self.memory.size:
-            return AHBResp.ERROR
-        return AHBResp.OKAY
+            return False
+        return True
 
     def _rd(self, addr: int, size: AHBSize) -> int:
         data = self.memory.read(addr, 2**size)

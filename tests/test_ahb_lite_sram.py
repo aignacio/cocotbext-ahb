@@ -3,7 +3,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 23.10.2023
+# Last Modified Date: 24.10.2023
 
 import cocotb
 import os
@@ -62,6 +62,7 @@ async def run_test(dut):
         dut.hclk,
         dut.hresetn,
         def_val=0,
+        bp=slave_back_pressure_generator([False, True, True, False, False]),
         mem_size=1024,
     )
     type(ahb_lite_sram)
@@ -72,9 +73,10 @@ async def run_test(dut):
 
     resp = await ahb_lite_master.write(address, value, size, pip=True)
     resp = await ahb_lite_master.read(address, pip=True)
-    print(resp)
+    # print(resp)
 
     resp = await ahb_lite_master.write(0x4000, 0xDEADBEEF, pip=True)
+    resp = await ahb_lite_master.read(1028, pip=True)
     print(resp)
 
 
