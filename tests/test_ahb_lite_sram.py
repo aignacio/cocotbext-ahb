@@ -3,17 +3,18 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 24.10.2023
+# Last Modified Date: 25.10.2023
 
 import cocotb
 import os
 import random
+import math
 
 from const import cfg
 from cocotb_test.simulator import run
 from cocotb.triggers import ClockCycles
 from cocotb.clock import Clock
-from cocotbext.ahb import AHBBus, AHBLiteMaster, AHBLiteSlaveRAM
+from cocotbext.ahb import AHBBus, AHBLiteMaster, AHBLiteSlaveRAM, AHBResp
 
 
 def rnd_val(bit: int = 0, zero: bool = True):
@@ -30,13 +31,9 @@ def pick_random_value(input_list):
         return None  # Return None if the list is empty
 
 
-def slave_back_pressure_generator(boolean_sequence):
+def slave_back_pressure_generator():
     while True:
-        for value in boolean_sequence:
-            if isinstance(value, bool):
-                yield value
-            else:
-                raise ValueError("Input sequence should contain" "only boolean values")
+        yield pick_random_value([False, True])
 
 
 @cocotb.coroutine
@@ -49,7 +46,9 @@ async def setup_dut(dut, cycles):
 
 @cocotb.test()
 async def run_test(dut):
-    N = 10
+    data_width = 32
+    mem_size_kib = 16
+    N = 5000
 
     await setup_dut(dut, cfg.RST_CYCLES)
 
@@ -62,22 +61,51 @@ async def run_test(dut):
         dut.hclk,
         dut.hresetn,
         def_val=0,
-        bp=slave_back_pressure_generator([False, True, True, False, False]),
-        mem_size=1024,
+        bp=slave_back_pressure_generator(),
+        mem_size=mem_size_kib * 1024,
     )
+
     type(ahb_lite_sram)
 
-    address = [rnd_val(10) & 0xFFFFFFFC for _ in range(N)]
-    value = [rnd_val(10) for _ in range(N)]
+    # Generate a list of unique addresses with the double of memory size
+    # to create error responses
+    address = random.sample(range(0, 2 * mem_size_kib * 1024, 4), N)
+    # Generate a list of random 32-bit values
+    value = [rnd_val(data_width) for _ in range(N)]
+    # Generate a list of random sizes
     size = [pick_random_value([1, 2, 4]) for _ in range(N)]
 
-    resp = await ahb_lite_master.write(address, value, size, pip=True)
-    resp = await ahb_lite_master.read(address, pip=True)
-    # print(resp)
+    # Create the comparison list
+    expected = []
+    for addr, val, sz in zip(address, value, size):
+        resp, data = 0, 0
+        if addr >= mem_size_kib * 1024:
+            resp = AHBResp.ERROR
+        else:
+            resp = AHBResp.OKAY
+            if sz == 1:
+                data = val & 0xFF
+            elif sz == 2:
+                data = val & 0xFFFF
+            elif sz == 4:
+                data = val & 0xFFFFFFFF
+            elif sz == 8:
+                data = val & 0xFFFFFFFFFFFFFFFF
+        expected.append({"resp": resp, "data": hex(data)})
 
-    resp = await ahb_lite_master.write(0x4000, 0xDEADBEEF, pip=True)
-    resp = await ahb_lite_master.read(1028, pip=True)
-    print(resp)
+    # Perform the writes and reads
+    resp = await ahb_lite_master.write(address, value, size, pip=True)
+    resp = await ahb_lite_master.read(address, size, pip=True)
+
+    # Compare all txns
+    for real, expect in zip(resp, expected):
+        if real != expect:
+            print("------ERROR------")
+            print("DUT")
+            print(real)
+            print("Expected")
+            print(expect)
+            assert real == expect, "DUT != Expected"
 
 
 def test_ahb_lite_sram():

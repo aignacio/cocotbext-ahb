@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 24.10.2023
+# Last Modified Date: 25.10.2023
 
 import cocotb
 import logging
@@ -141,7 +141,7 @@ class AHBLiteMaster:
         size: Sequence[int],
         mode: Sequence[AHBWrite],
         trans: Sequence[AHBTrans],
-    ) -> Sequence[AHBResp]:
+    ) -> Sequence[dict]:
         """Drives the AHB transaction into the bus."""
         response = []
         first_txn = True
@@ -194,7 +194,7 @@ class AHBLiteMaster:
                 response += [
                     {
                         "resp": AHBResp(int(self.bus.hresp.value)),
-                        "data": self.bus.hrdata.value,
+                        "data": hex(self.bus.hrdata.value),
                     }
                 ]
         self._init_bus()
