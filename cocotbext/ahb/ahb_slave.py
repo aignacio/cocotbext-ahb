@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 16.10.2023
-# Last Modified Date: 24.10.2023
+# Last Modified Date: 25.10.2023
 
 import cocotb
 import logging
@@ -164,7 +164,7 @@ class AHBLiteSlave:
 
         for var, val in signals.items():
             if val.value.is_resolvable is False:
-                self.log.warn(f"{var} is not resolvable")
+                # self.log.warn(f"{var} is not resolvable")
                 return False
         return True
 

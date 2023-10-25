@@ -15,6 +15,7 @@ from cocotb_test.simulator import run
 from cocotb.triggers import ClockCycles
 from cocotb.clock import Clock
 from cocotbext.ahb import AHBBus, AHBLiteMaster, AHBLiteSlaveRAM, AHBResp
+from cocotb.regression import TestFactory
 
 
 def rnd_val(bit: int = 0, zero: bool = True):
@@ -36,6 +37,11 @@ def slave_back_pressure_generator():
         yield pick_random_value([False, True])
 
 
+def slave_no_back_pressure_generator():
+    while True:
+        yield True
+
+
 @cocotb.coroutine
 async def setup_dut(dut, cycles):
     cocotb.start_soon(Clock(dut.hclk, *cfg.CLK_100MHz).start())
@@ -45,10 +51,10 @@ async def setup_dut(dut, cycles):
 
 
 @cocotb.test()
-async def run_test(dut):
+async def run_test(dut, bp_fn=None, pip_mode=False):
     data_width = 32
     mem_size_kib = 16
-    N = 5000
+    N = 4000
 
     await setup_dut(dut, cfg.RST_CYCLES)
 
@@ -61,7 +67,7 @@ async def run_test(dut):
         dut.hclk,
         dut.hresetn,
         def_val=0,
-        bp=slave_back_pressure_generator(),
+        bp=bp_fn,
         mem_size=mem_size_kib * 1024,
     )
 
@@ -69,13 +75,13 @@ async def run_test(dut):
 
     # Generate a list of unique addresses with the double of memory size
     # to create error responses
-    address = random.sample(range(0, 2 * mem_size_kib * 1024, 4), N)
+    address = random.sample(range(0, 2 * mem_size_kib * 1024, 8), N)
     # Generate a list of random 32-bit values
     value = [rnd_val(data_width) for _ in range(N)]
     # Generate a list of random sizes
     size = [pick_random_value([1, 2, 4]) for _ in range(N)]
 
-    # Create the comparison list
+    # Create the comparison list with expected results
     expected = []
     for addr, val, sz in zip(address, value, size):
         resp, data = 0, 0
@@ -94,8 +100,8 @@ async def run_test(dut):
         expected.append({"resp": resp, "data": hex(data)})
 
     # Perform the writes and reads
-    resp = await ahb_lite_master.write(address, value, size, pip=True)
-    resp = await ahb_lite_master.read(address, size, pip=True)
+    resp = await ahb_lite_master.write(address, value, size, pip=pip_mode)
+    resp = await ahb_lite_master.read(address, size, pip=pip_mode)
     print(resp)
     # Compare all txns
     for index, (real, expect) in enumerate(zip(resp, expected)):
@@ -107,6 +113,15 @@ async def run_test(dut):
             print("Expected")
             print(expect)
             assert real == expect, "DUT != Expected"
+
+
+if cocotb.SIM_NAME:
+    factory = TestFactory(run_test)
+    factory.add_option(
+        "bp_fn", [slave_back_pressure_generator(), slave_no_back_pressure_generator()]
+    )
+    factory.add_option("pip_mode", [False, True])
+    factory.generate_tests()
 
 
 def test_ahb_lite_sram():
