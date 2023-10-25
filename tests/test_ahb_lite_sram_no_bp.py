@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# File              : test_ahb_lite_sram.py
+# File              : test_ahb_lite_sram_no_bp.py
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
@@ -61,7 +61,6 @@ async def run_test(dut):
         dut.hclk,
         dut.hresetn,
         def_val=0,
-        bp=slave_back_pressure_generator(),
         mem_size=mem_size_kib * 1024,
     )
 
@@ -94,8 +93,8 @@ async def run_test(dut):
         expected.append({"resp": resp, "data": hex(data)})
 
     # Perform the writes and reads
-    resp = await ahb_lite_master.write(address, value, size, pip=True)
-    resp = await ahb_lite_master.read(address, size, pip=True)
+    resp = await ahb_lite_master.write(address, value, size, pip=False)
+    resp = await ahb_lite_master.read(address, size, pip=False)
     print(resp)
     # Compare all txns
     for index, (real, expect) in enumerate(zip(resp, expected)):
@@ -109,11 +108,11 @@ async def run_test(dut):
             assert real == expect, "DUT != Expected"
 
 
-def test_ahb_lite_sram():
+def test_ahb_lite_sram_no_bp():
     """
     Test AHB lite SRAM
 
-    Test ID: 2
+    Test ID: 3
     """
     module = os.path.splitext(os.path.basename(__file__))[0]
     SIM_BUILD = os.path.join(

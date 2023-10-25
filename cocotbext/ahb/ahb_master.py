@@ -141,6 +141,7 @@ class AHBLiteMaster:
         size: Sequence[int],
         mode: Sequence[AHBWrite],
         trans: Sequence[AHBTrans],
+        pip: bool = False,
     ) -> Sequence[dict]:
         """Drives the AHB transaction into the bus."""
         response = []
@@ -191,6 +192,10 @@ class AHBLiteMaster:
             if first_txn:
                 first_txn = False
             else:
+                # if Non-Pipeline, don't sample hresp in the next cc, wait
+                # always one more
+                if not pip:
+                    first_txn = True
                 response += [
                     {
                         "resp": AHBResp(int(self.bus.hresp.value)),
@@ -258,7 +263,7 @@ class AHBLiteMaster:
         width = len(self.bus.htrans)
         t_trans = self._create_vector(t_trans, width, "address_ph", pip)
 
-        return await self._send_txn(t_address, t_value, t_size, t_mode, t_trans)
+        return await self._send_txn(t_address, t_value, t_size, t_mode, t_trans, pip)
 
     @cocotb.coroutine
     async def read(
@@ -308,7 +313,7 @@ class AHBLiteMaster:
         width = len(self.bus.htrans)
         t_trans = self._create_vector(t_trans, width, "address_ph", pip)
 
-        return await self._send_txn(t_address, t_value, t_size, t_mode, t_trans)
+        return await self._send_txn(t_address, t_value, t_size, t_mode, t_trans, pip)
 
     @cocotb.coroutine
     async def custom(
@@ -367,7 +372,7 @@ class AHBLiteMaster:
         width = len(self.bus.htrans)
         t_trans = self._create_vector(t_trans, width, "address_ph", pip)
 
-        return await self._send_txn(t_address, t_value, t_size, t_mode, t_trans)
+        return await self._send_txn(t_address, t_value, t_size, t_mode, t_trans, pip)
 
 
 class AHBMaster(AHBLiteMaster):
