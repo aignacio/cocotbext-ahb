@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 25.10.2023
+# Last Modified Date: 26.10.2023
 
 import nox
 
@@ -29,7 +29,6 @@ def run(session):
     session.run(
         "pytest",
         "--cov=cocotbext",
-        "--cov=tests",
         "--cov-branch",
         "--cov-report=xml",
         "-rP",
