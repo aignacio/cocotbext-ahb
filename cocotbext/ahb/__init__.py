@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 24.10.2023
+# Last Modified Date: 26.10.2023
 
 # Imported all classes in the default constructor to avoid
 # specific imports by knowing the folder/files
@@ -14,6 +14,6 @@
 # ex. with this:
 # from cocotbext.ahb import AHBLiteMaster, AHBBus
 from .ahb_master import AHBLiteMaster, AHBMaster
-from .ahb_slave import AHBLiteSlave, AHBLiteSlaveRAM
+from .ahb_slave import AHBLiteSlave, AHBSlave, AHBLiteSlaveRAM
 from .ahb_bus import AHBBus
 from .ahb_types import AHBResp, AHBSize, AHBBurst, AHBTrans, AHBWrite

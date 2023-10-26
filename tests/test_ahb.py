@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File              : test_ahb_lite.py
+# File              : test_ahb.py
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
@@ -14,7 +14,7 @@ from const import cfg
 from cocotb_test.simulator import run
 from cocotb.triggers import ClockCycles
 from cocotb.clock import Clock
-from cocotbext.ahb import AHBBus, AHBLiteMaster, AHBLiteSlave
+from cocotbext.ahb import AHBBus, AHBMaster, AHBSlave
 from cocotb.regression import TestFactory
 
 
@@ -56,27 +56,27 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
 
     await setup_dut(dut, cfg.RST_CYCLES)
 
-    ahb_lite_master = AHBLiteMaster(
+    ahb_master = AHBMaster(
         AHBBus.from_prefix(dut, "slave"), dut.hclk, dut.hresetn, def_val="Z"
     )
 
-    ahb_lite_slave = AHBLiteSlave(
+    ahb_slave = AHBSlave(
         AHBBus.from_prefix(dut, "master"), dut.hclk, dut.hresetn, def_val=0, bp=bp_fn
     )
 
-    type(ahb_lite_slave)
+    type(ahb_slave)
 
     address = [rnd_val(32) for _ in range(N)]
     value = [rnd_val(32) for _ in range(N)]
     size = [pick_random_value([1, 2, 4]) for _ in range(N)]
 
-    resp = await ahb_lite_master.write(address, value, pip=pip_mode)
-    resp = await ahb_lite_master.write(address, value, pip=not pip_mode)
-    resp = await ahb_lite_master.write(address, value, pip=pip_mode)
+    resp = await ahb_master.write(address, value, pip=pip_mode)
+    resp = await ahb_master.write(address, value, pip=not pip_mode)
+    resp = await ahb_master.write(address, value, pip=pip_mode)
 
-    resp = await ahb_lite_master.read(address, size, pip=pip_mode)
-    resp = await ahb_lite_master.read(address, size, pip=not pip_mode)
-    resp = await ahb_lite_master.read(address, size, pip=pip_mode)
+    resp = await ahb_master.read(address, size, pip=pip_mode)
+    resp = await ahb_master.read(address, size, pip=not pip_mode)
+    resp = await ahb_master.read(address, size, pip=pip_mode)
 
     address = [rnd_val(32) for _ in range(N)]
     value = [rnd_val(32) for _ in range(N)]
@@ -86,7 +86,7 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
 
     txn_type = [pick_random_value([1, 0]) for _ in range(N)]
 
-    resp = await ahb_lite_master.custom(
+    resp = await ahb_master.custom(
         address, value, txn_type, size, pip_mode
     )
 
@@ -100,11 +100,11 @@ if cocotb.SIM_NAME:
     factory.generate_tests()
 
 
-def test_ahb_lite():
+def test_ahb():
     """
-    Test AHB lite
+    Test AHB
 
-    Test ID: 1
+    Test ID: 3
     """
     module = os.path.splitext(os.path.basename(__file__))[0]
     SIM_BUILD = os.path.join(

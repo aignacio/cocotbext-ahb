@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 25.10.2023
+# Last Modified Date: 26.10.2023
 
 import cocotb
 import logging
@@ -159,6 +159,7 @@ class AHBLiteMaster:
                         op = "write" if txn_mode == 1 else "read"
                         self.log.info(
                             f"AHB {op} txn:\n"
+                            f"\tID = {index}\n"
                             f"\tADDR = 0x{txn_addr:x}\n"
                             f"\tDATA = 0x{value[index+1]:x}\n"
                             f"\tSIZE = {txn_size}"

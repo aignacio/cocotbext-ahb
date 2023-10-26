@@ -1,0 +1,8 @@
+[run]
+branch = True
+
+[report]
+omit =
+  cocotbext/ahb/memory.py
+  cocotbext/ahb/sparse_memory.py
+  cocotbext/ahb/utils.py

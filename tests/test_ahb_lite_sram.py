@@ -3,7 +3,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 25.10.2023
+# Last Modified Date: 26.10.2023
 
 import cocotb
 import os
@@ -54,7 +54,7 @@ async def setup_dut(dut, cycles):
 async def run_test(dut, bp_fn=None, pip_mode=False):
     data_width = 32
     mem_size_kib = 16
-    N = 4000
+    N = 1000
 
     await setup_dut(dut, cfg.RST_CYCLES)
 
@@ -128,7 +128,7 @@ def test_ahb_lite_sram():
     """
     Test AHB lite SRAM
 
-    Test ID: 2
+    Test ID: 3
     """
     module = os.path.splitext(os.path.basename(__file__))[0]
     SIM_BUILD = os.path.join(

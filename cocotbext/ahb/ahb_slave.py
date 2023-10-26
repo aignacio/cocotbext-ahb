@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 16.10.2023
-# Last Modified Date: 25.10.2023
+# Last Modified Date: 26.10.2023
 
 import cocotb
 import logging
@@ -63,12 +63,6 @@ class AHBLiteSlave:
     def _get_def(self, width: int = 1) -> BinaryValue:
         """Return a handle obj with the default value"""
         return LogicArray([self.def_val for _ in range(width)])
-
-    def _rnd_val(self, bit: int = 0, zero: Optional[bool] = True) -> int:
-        if zero is True:
-            return random.randint(0, (2**bit) - 1)
-        else:
-            return random.randint(1, (2**bit) - 1)
 
     async def _proc_txn(self):
         """Process any incoming txns"""
