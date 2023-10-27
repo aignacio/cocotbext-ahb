@@ -3,7 +3,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 26.10.2023
+# Last Modified Date: 27.10.2023
 
 import cocotb
 import os
@@ -14,7 +14,7 @@ from const import cfg
 from cocotb_test.simulator import run
 from cocotb.triggers import ClockCycles
 from cocotb.clock import Clock
-from cocotbext.ahb import AHBBus, AHBLiteMaster, AHBLiteSlaveRAM, AHBResp
+from cocotbext.ahb import AHBBus, AHBLiteMaster, AHBLiteSlaveRAM, AHBResp, AHBMonitor
 from cocotb.regression import TestFactory
 
 
@@ -42,7 +42,6 @@ def slave_no_back_pressure_generator():
         yield True
 
 
-@cocotb.coroutine
 async def setup_dut(dut, cycles):
     cocotb.start_soon(Clock(dut.hclk, *cfg.CLK_100MHz).start())
     dut.hresetn.value = 0
@@ -58,9 +57,12 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
 
     await setup_dut(dut, cfg.RST_CYCLES)
 
-    ahb_lite_master = AHBLiteMaster(
-        AHBBus.from_prefix(dut, "slave"), dut.hclk, dut.hresetn, def_val="Z"
+    ahb_lite_mon = AHBMonitor(
+        AHBBus.from_prefix(dut, "slave"), dut.hclk, dut.hresetn
     )
+
+    # Below is only required bc of flake8 - non-used rule
+    type(ahb_lite_mon)
 
     ahb_lite_sram = AHBLiteSlaveRAM(
         AHBBus.from_prefix(dut, "master"),
@@ -71,7 +73,12 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
         mem_size=mem_size_kib * 1024,
     )
 
+    # Below is only required bc of flake8 - non-used rule
     type(ahb_lite_sram)
+
+    ahb_lite_master = AHBLiteMaster(
+        AHBBus.from_prefix(dut, "slave"), dut.hclk, dut.hresetn, def_val="Z"
+    )
 
     # Generate a list of unique addresses with the double of memory size
     # to create error responses

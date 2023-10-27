@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 26.10.2023
+# Last Modified Date: 27.10.2023
 
 import cocotb
 import logging
@@ -133,7 +133,6 @@ class AHBLiteMaster:
                     vec_out.append(i)
         return vec_out
 
-    @cocotb.coroutine
     async def _send_txn(
         self,
         address: Sequence[int],
@@ -206,7 +205,6 @@ class AHBLiteMaster:
         self._init_bus()
         return response
 
-    @cocotb.coroutine
     async def write(
         self,
         address: Union[int, Sequence[int]],
@@ -266,7 +264,6 @@ class AHBLiteMaster:
 
         return await self._send_txn(t_address, t_value, t_size, t_mode, t_trans, pip)
 
-    @cocotb.coroutine
     async def read(
         self,
         address: Union[int, Sequence[int]],
@@ -316,7 +313,6 @@ class AHBLiteMaster:
 
         return await self._send_txn(t_address, t_value, t_size, t_mode, t_trans, pip)
 
-    @cocotb.coroutine
     async def custom(
         self,
         address: Union[int, Sequence[int]],

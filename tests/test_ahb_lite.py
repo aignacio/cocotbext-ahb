@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 26.10.2023
+# Last Modified Date: 27.10.2023
 
 import cocotb
 import os
@@ -42,7 +42,6 @@ def slave_no_back_pressure_generator():
         yield True
 
 
-@cocotb.coroutine
 async def setup_dut(dut, cycles):
     cocotb.start_soon(Clock(dut.hclk, *cfg.CLK_100MHz).start())
     dut.hresetn.value = 0

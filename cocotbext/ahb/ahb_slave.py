@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 16.10.2023
-# Last Modified Date: 26.10.2023
+# Last Modified Date: 27.10.2023
 
 import cocotb
 import logging

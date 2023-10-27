@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File              : test_ahb.py
+# File              : test_ahb_monitor_master.py
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
@@ -14,7 +14,7 @@ from const import cfg
 from cocotb_test.simulator import run
 from cocotb.triggers import ClockCycles
 from cocotb.clock import Clock
-from cocotbext.ahb import AHBBus, AHBMaster, AHBSlave
+from cocotbext.ahb import AHBBus, AHBMonitor, AHBTrans
 from cocotb.regression import TestFactory
 
 
@@ -49,61 +49,57 @@ async def setup_dut(dut, cycles):
     dut.hresetn.value = 1
 
 
-@cocotb.test()
-async def run_test(dut, bp_fn=None, pip_mode=False):
-    N = 1000
-
+@cocotb.test(expect_fail=True)
+async def run_test(dut):  # , msig="hsel"):
     await setup_dut(dut, cfg.RST_CYCLES)
 
-    ahb_master = AHBMaster(
-        AHBBus.from_prefix(dut, "slave"), dut.hclk, dut.hresetn, def_val="Z"
-    )
+    ahb_mon = AHBMonitor(AHBBus.from_prefix(dut, "slave"), dut.hclk, dut.hresetn)
 
-    ahb_slave = AHBSlave(
-        AHBBus.from_prefix(dut, "master"), dut.hclk, dut.hresetn, def_val=0, bp=bp_fn
-    )
+    type(ahb_mon)
 
-    type(ahb_slave)
+    msig = pick_random_value(["hsel", "haddr", "hsize", "htrans", "hwrite"])
 
-    address = [rnd_val(32) for _ in range(N)]
-    value = [rnd_val(32) for _ in range(N)]
-    size = [pick_random_value([1, 2, 4]) for _ in range(N)]
+    dut.slave_hsel.value = 1
+    dut.slave_haddr.value = 0xDEADBEEF
+    dut.slave_hsize.value = 0x2
+    dut.slave_htrans.value = AHBTrans.NONSEQ
+    dut.slave_hwdata.value = 0xBABEBABE
+    dut.slave_hwrite.value = 1
+    dut.slave_hready_in.value = 1
 
-    resp = await ahb_master.write(address, value, pip=pip_mode)
-    resp = await ahb_master.write(address, value, pip=not pip_mode)
-    resp = await ahb_master.write(address, value, pip=pip_mode)
+    dut.master_hready.value = 0
+    dut.master_hresp.value = 0
+    dut.master_hrdata.value = 0
 
-    resp = await ahb_master.read(address, size, pip=pip_mode)
-    resp = await ahb_master.read(address, size, pip=not pip_mode)
-    resp = await ahb_master.read(address, size, pip=pip_mode)
+    await ClockCycles(dut.hclk, 1)
 
-    address = [rnd_val(32) for _ in range(N)]
-    value = [rnd_val(32) for _ in range(N)]
-    size = [pick_random_value([1, 2, 4]) for _ in range(N)]
+    # Test bad master - Master changes address phase qualifiers
+    dut.slave_hsel.value = 1 if msig != "hsel" else 0
+    dut.slave_haddr.value = 0xDEADBEEF if msig != "haddr" else 0
+    dut.slave_hsize.value = 0x2 if msig != "hsize" else 0
+    dut.slave_htrans.value = AHBTrans.NONSEQ if msig != "htrans" else 0
+    dut.slave_hwdata.value = 0xBABEBABE
+    dut.slave_hwrite.value = 1 if msig != "hwrite" else 0
+    dut.slave_hready_in.value = 1
 
-    print(resp)
+    dut.master_hready.value = 0
+    dut.master_hresp.value = 0
+    dut.master_hrdata.value = 0
 
-    txn_type = [pick_random_value([1, 0]) for _ in range(N)]
-
-    resp = await ahb_master.custom(
-        address, value, txn_type, size, pip_mode
-    )
-
-
-if cocotb.SIM_NAME:
-    factory = TestFactory(run_test)
-    factory.add_option(
-        "bp_fn", [slave_back_pressure_generator(), slave_no_back_pressure_generator()]
-    )
-    factory.add_option("pip_mode", [False, True])
-    factory.generate_tests()
+    await ClockCycles(dut.hclk, 2)
 
 
-def test_ahb():
+# if cocotb.SIM_NAME:
+# factory = TestFactory(run_test)
+# factory.add_option("msig", ["hsel", "haddr", "hsize", "htrans", "hwrite"])
+# factory.generate_tests()
+
+
+def test_ahb_monitor_master():
     """
-    Test AHB
+    Test AHB monitor
 
-    Test ID: 2
+    Test ID: 4
     """
     module = os.path.splitext(os.path.basename(__file__))[0]
     SIM_BUILD = os.path.join(
