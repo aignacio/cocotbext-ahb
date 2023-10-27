@@ -3,7 +3,7 @@ import codecs
 import os
 from cocotbext.ahb.version import __version__
 
-DESCRIPTION = 'Cocotbext AHB Bus VIP'
+DESCRIPTION = 'CocotbExt AHB Bus VIP'
 LONG_DESCRIPTION = 'AHB VIP for Bus interface'
 
 here = os.path.abspath(os.path.dirname(__file__))
