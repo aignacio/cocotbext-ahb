@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 27.10.2023
+# Last Modified Date: 29.10.2023
 
 import cocotb
 import logging
@@ -15,7 +15,7 @@ from .ahb_bus import AHBBus
 from .version import __version__
 
 from cocotb.triggers import RisingEdge
-from typing import Optional, Sequence, Union
+from typing import Optional, Sequence, Union, List
 from cocotb.types import LogicArray
 from cocotb.binary import BinaryValue
 
@@ -211,7 +211,7 @@ class AHBLiteMaster:
         value: Union[int, Sequence[int]],
         size: Optional[Union[int, Sequence[int]]] = None,
         pip: Optional[bool] = False,
-    ) -> Sequence[AHBResp]:
+    ) -> Sequence[dict]:
         """Write data in the AHB bus."""
 
         if not isinstance(address, list):
@@ -269,7 +269,7 @@ class AHBLiteMaster:
         address: Union[int, Sequence[int]],
         size: Optional[Union[int, Sequence[int]]] = None,
         pip: Optional[bool] = False,
-    ) -> Sequence[AHBResp]:
+    ) -> Sequence[dict]:
         """Read data from the AHB bus."""
 
         if not isinstance(address, list):
@@ -320,7 +320,7 @@ class AHBLiteMaster:
         mode: Union[int, Sequence[int]],
         size: Optional[Union[int, Sequence[int]]] = None,
         pip: Optional[bool] = True,
-    ) -> Sequence[AHBResp]:
+    ) -> Sequence[dict]:
         """Back-to-Back operation"""
 
         if len(address) != len(value):
