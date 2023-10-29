@@ -337,8 +337,11 @@ async def run_test(dut):
     # Perform the writes and reads
     resp = await ahb_lite_master.write(address, value, size, pip=pip_mode)
     resp = await ahb_lite_master.read(address, size, pip=pip_mode)
-
 ```
+
+### Example waveforms
+
+![example_ext](docs_utils/txn_example.png)
 
 ## <a name="lic"></a> License
 cocotbext-ahb is licensed under the permissive MIT license.Please refer to the [LICENSE](LICENSE) file for details.
