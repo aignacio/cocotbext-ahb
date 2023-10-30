@@ -3,12 +3,13 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 27.10.2023
+# Last Modified Date: 30.10.2023
 
 import cocotb
 import os
 import random
 import math
+import pytest
 
 from const import cfg
 from cocotb_test.simulator import run
@@ -51,15 +52,16 @@ async def setup_dut(dut, cycles):
 
 @cocotb.test()
 async def run_test(dut, bp_fn=None, pip_mode=False):
-    data_width = 32
     mem_size_kib = 16
     N = 1000
 
+    ahb_bus_slave = AHBBus.from_prefix(dut, "slave")
+
+    data_width = ahb_bus_slave.data_width
+
     await setup_dut(dut, cfg.RST_CYCLES)
 
-    ahb_lite_mon = AHBMonitor(
-        AHBBus.from_prefix(dut, "slave"), dut.hclk, dut.hresetn
-    )
+    ahb_lite_mon = AHBMonitor(ahb_bus_slave, dut.hclk, dut.hresetn)
 
     # Below is only required bc of flake8 - non-used rule
     type(ahb_lite_mon)
@@ -86,7 +88,10 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
     # Generate a list of random 32-bit values
     value = [rnd_val(data_width) for _ in range(N)]
     # Generate a list of random sizes
-    size = [pick_random_value([1, 2, 4]) for _ in range(N)]
+    if data_width == 32:
+        size = [pick_random_value([1, 2, 4]) for _ in range(N)]
+    else:
+        size = [pick_random_value([1, 2, 4, 8]) for _ in range(N)]
 
     # Create the comparison list with expected results
     expected = []
@@ -131,7 +136,8 @@ if cocotb.SIM_NAME:
     factory.generate_tests()
 
 
-def test_ahb_lite_sram():
+@pytest.mark.parametrize("data_width", [{"DATA_WIDTH": "32"}, {"DATA_WIDTH": "64"}])
+def test_ahb_lite_sram(data_width):
     """
     Test AHB lite SRAM
 
@@ -139,7 +145,8 @@ def test_ahb_lite_sram():
     """
     module = os.path.splitext(os.path.basename(__file__))[0]
     SIM_BUILD = os.path.join(
-        cfg.TESTS_DIR, f"../run_dir/sim_build_{cfg.SIMULATOR}_{module}"
+        cfg.TESTS_DIR,
+        f"../run_dir/sim_build_{cfg.SIMULATOR}_{module}_data_width_{data_width['DATA_WIDTH']}_bits",
     )
     extra_args_sim = cfg.EXTRA_ARGS
 
@@ -148,6 +155,7 @@ def test_ahb_lite_sram():
         verilog_sources=cfg.VERILOG_SOURCES,
         toplevel=cfg.TOPLEVEL,
         module=module,
+        parameters=data_width,
         sim_build=SIM_BUILD,
         extra_args=extra_args_sim,
         extra_env=cfg.EXTRA_ENV,
