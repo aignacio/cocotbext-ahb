@@ -20,7 +20,9 @@ setup(
     long_description_content_type="text/markdown",
     long_description=long_description,
     url='https://github.com/aignacio/cocotbext-ahb',
-    packages=find_packages(),
+    packages=find_packages(
+        include="cocotbext.*"
+    ),
     include_package_data=False,
     python_requires='>=3.6',
     install_requires=[
