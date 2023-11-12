@@ -31,7 +31,7 @@ class AHBBus(Bus):
 
         #Handle default optional_signals or optional_signals overrided at an upper level
         if "optional_signals" not in kwargs:
-            kwargs["optional_signals"] = self._signals
+            kwargs["optional_signals"] = self._optional_signals
         else:
             entity._log.info(f"AHB ({name}) master use provided optional_signals mapping")
 
