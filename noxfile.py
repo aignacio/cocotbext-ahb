@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 26.10.2023
+# Last Modified Date: 12.11.2023
 
 import nox
 
@@ -13,7 +13,7 @@ import nox
 def run(session):
     session.env["DUT"] = "ahb_template"
     session.env["SIM"] = "icarus"
-    # session.env['SIM'] = 'verilator'
+    # session.env['SIM'] = "verilator"
     session.env["TIMEPREC"] = "1ps"
     session.env["TIMEUNIT"] = "1ns"
     session.install(

@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 27.10.2023
-# Last Modified Date: 27.10.2023
+# Last Modified Date: 12.11.2023
 import cocotb
 import logging
 import random
@@ -14,7 +14,7 @@ from .ahb_types import AHBTrans, AHBWrite, AHBSize, AHBResp
 from .ahb_bus import AHBBus
 from .version import __version__
 
-from cocotb.triggers import RisingEdge
+from cocotb.triggers import RisingEdge, FallingEdge
 from cocotb.types import LogicArray
 from cocotb.binary import BinaryValue
 from typing import Optional, Union, Generator, List
@@ -51,7 +51,7 @@ class AHBMonitor:
         stable_signals = {}
 
         while True:
-            await RisingEdge(self.clk)
+            await FallingEdge(self.clk)
 
             # print(f"pending: {pending}")
             # Ensure master does not change its qualifiers before hready
