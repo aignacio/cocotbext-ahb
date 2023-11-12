@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 29.10.2023
+# Last Modified Date: 12.11.2023
 
 import cocotb
 import logging
@@ -146,9 +146,17 @@ class AHBLiteMaster:
         response = []
         first_txn = True
 
-        for index, (txn_addr, txn_data, txn_size, txn_mode, txn_trans) in enumerate(
-            zip(address, value, size, mode, trans)
-        ):
+        index = 0
+        restart = False
+
+        while index < len(address):
+            txn_addr, txn_data, txn_size, txn_mode, txn_trans = (
+                address[index],
+                value[index],
+                size[index],
+                mode[index],
+                trans[index],
+            )
             if index == len(address) - 1:
                 self._init_bus()
             else:
@@ -168,26 +176,46 @@ class AHBLiteMaster:
                 self.bus.hready_in.value = 1
 
             await RisingEdge(self.clk)
-            timeout_counter = 0
 
-            if self.bus.hready.value.is_resolvable is False:
-                while self.bus.hready.value.is_resolvable is False:
-                    timeout_counter += 1
-                    if timeout_counter == self.timeout:
-                        raise Exception(
-                            f"Timeout value of {timeout_counter}"
-                            f" clock cycles has been reached!"
-                        )
-                    await RisingEdge(self.clk)
-            else:
-                while self.bus.hready.value != 1:
-                    timeout_counter += 1
-                    if timeout_counter == self.timeout:
-                        raise Exception(
-                            f"Timeout value of {timeout_counter}"
-                            f" clock cycles has been reached!"
-                        )
-                    await RisingEdge(self.clk)
+            # First check if the slave signals are resolvable
+            timeout_counter = 0
+            while any(
+                [
+                    not self.bus.hready.value.is_resolvable,
+                    not self.bus.hresp.value.is_resolvable,
+                    not self.bus.hrdata.value.is_resolvable,
+                ]
+            ):
+                timeout_counter += 1
+                if timeout_counter == self.timeout:
+                    raise Exception(
+                        f"Timeout value of {timeout_counter}"
+                        f" clock cycles has been reached because AHB.SLAVE"
+                        f"signals are not resolvable!\n"
+                        f"hready: {self.bus.hready.value.is_resolvable}\n"
+                        f"hrdata: {self.bus.hrdata.value.is_resolvable}\n"
+                        f"hresp: {self.bus.hresp.value.is_resolvable}\n"
+                    )
+                await RisingEdge(self.clk)
+
+            index += 1
+            # Wait till a response is available from the slave
+            while self.bus.hready.value != 1:
+                if self.bus.hresp == AHBResp.ERROR:
+                    if self.bus.htrans.value.is_resolvable:
+                        if self.bus.htrans.value == AHBTrans.NONSEQ:
+                            index -= 1  # Redo the txn
+                            self.bus.htrans.value = (
+                                AHBTrans.IDLE
+                            )  # Withdrawn the req. in case of error
+                            restart = True
+                timeout_counter += 1
+                if timeout_counter == self.timeout:
+                    raise Exception(
+                        f"Timeout value of {timeout_counter}"
+                        f" clock cycles has been reached!"
+                    )
+                await RisingEdge(self.clk)
 
             if first_txn:
                 first_txn = False
@@ -202,6 +230,10 @@ class AHBLiteMaster:
                         "data": hex(self.bus.hrdata.value),
                     }
                 ]
+            if restart:  # As we withdrawn the last txn, let's restart
+                first_txn = True
+                restart = False
+
         self._init_bus()
         return response
 

@@ -165,6 +165,9 @@ class AHBMonitor:
             if current[signal].value.is_resolvable is not True:
                 raise AssertionError(f"Signal master.{signal} is not resolvable!")
             if current[signal].value != stable[signal]:
-                raise AssertionError(
-                    f"AHB PROTOCOL VIOLATION: Master.{signal} signal should not change before slave.hready == 1"
-                )
+                if (signal == "htrans") and (self.bus.hresp.value == AHBResp.ERROR):
+                    pass
+                else:
+                    raise AssertionError(
+                        f"AHB PROTOCOL VIOLATION: Master.{signal} signal should not change before slave.hready == 1"
+                    )

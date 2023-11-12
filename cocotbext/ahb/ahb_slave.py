@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 16.10.2023
-# Last Modified Date: 27.10.2023
+# Last Modified Date: 12.11.2023
 
 import cocotb
 import logging
@@ -80,6 +80,7 @@ class AHBLiteSlave:
             await RisingEdge(self.clk)
 
             cur_hready = copy.deepcopy(self.bus.hready.value)
+            cur_hresp = copy.deepcopy(self.bus.hresp.value)
 
             # Default values in case there is no txn
             self.bus.hready.value = self._get_def(1)
@@ -93,7 +94,12 @@ class AHBLiteSlave:
             if ready:
                 self.bus.hready.value = 1
 
-            if error:
+            if error and (cur_hresp == AHBResp.OKAY):  # First cycle of error response
+                self.bus.hready.value = 0
+                self.bus.hresp.value = AHBResp.ERROR
+            elif error and (
+                cur_hresp == AHBResp.ERROR
+            ):  # Second cycle of error response
                 self.bus.hready.value = 1
                 self.bus.hresp.value = AHBResp.ERROR
                 error = False
@@ -110,7 +116,12 @@ class AHBLiteSlave:
                         self.bus.hresp.value = AHBResp.OKAY
 
             # Check for new txn
-            if cur_hready == 1 and self._check_inputs() and self._check_valid_txn():
+            if (
+                (cur_hready == 1)
+                and (cur_hresp != AHBResp.ERROR)
+                and self._check_inputs()
+                and self._check_valid_txn()
+            ):
                 txn_addr = self.bus.haddr.value
                 txn_size = AHBSize(self.bus.hsize.value)
                 txn_type = AHBWrite(self.bus.hwrite.value)
