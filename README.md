@@ -124,6 +124,46 @@ class AHBBus(Bus):
 
 * hexokay
 
+##### Signal customization for your design
+To customize signals name to your design `signals` and `optional_signals` dictionnary can be provide. 
+```python
+AHBBus.from_prefix(
+    dut, 
+    prefix = "slave_driver",
+    signals = {
+        "haddr" : "haddr",
+        "hsize" : "hsize",
+        "htrans" : "htrans",
+        "hwdata" : "hwdata",
+        "hrdata" : "hrdata",
+        "hwrite" : "hwrite",
+        "hready" : "hreadyout",
+        "hresp" : "hresp"
+    }
+,
+    optional_signals = {
+        "hsel" : "hsel",
+        "hready_in" : "hready"
+    }
+)
+```
+
+#### Mandatory vs optional AHB signals
+
+1. AHB Master signals
+
+##### Mandatory
+
+* haddr - Indicates AHB txn address 
+* hsize - Indicates AHB txn size
+* htrans - Indicates AHB txn type
+* hwdata - Indicates AHB data to be written
+* hwrite - Indicates type of AHB txn
+
+##### Optional
+
+* hburst
+
 ### AHB Master
 
 Both AHB Master [WIP] and AHB Lite Master classes have the same constructor arguments. Within the arguments, it is required to pass the AHB Bus object, the clock and reset DUT pins. As optional args, a timeout value in clock cycles (per AHB txn), the default value of the master driven IOs and the name of the object.
