@@ -20,10 +20,24 @@ class AHBBus(Bus):
 
     def __init__(self, entity: SimHandleBase = None,
                  prefix: str = None, **kwargs: Any) -> None:
-        super().__init__(entity, prefix, self._signals,
-                         optional_signals=self._optional_signals, **kwargs)
+
+        name = prefix if prefix is not None else entity._name + '_ahb_bus'
+
+        #Handle default signals or signals overrided at an upper level
+        if "signals" not in kwargs:
+            kwargs["signals"] = self._signals
+        else:
+            entity._log.info(f"AHB ({name}) master use provided signals mapping")
+
+        #Handle default optional_signals or optional_signals overrided at an upper level
+        if "optional_signals" not in kwargs:
+            kwargs["optional_signals"] = self._signals
+        else:
+            entity._log.info(f"AHB ({name}) master use provided optional_signals mapping")
+
+        super().__init__(entity, prefix, **kwargs)
         self.entity = entity
-        self.name = prefix if prefix is not None else entity._name + '_ahb_bus'
+        self.name = name
         self._data_width = len(self.hwdata)
         self._addr_width = len(self.haddr)
 
