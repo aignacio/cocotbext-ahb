@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 27.10.2023
-# Last Modified Date: 12.11.2023
+# Last Modified Date: 13.11.2023
 import cocotb
 import logging
 import random
@@ -52,9 +52,6 @@ class AHBMonitor:
 
         while True:
             await FallingEdge(self.clk)
-            if self.bus.htrans.value.is_resolvable and self.bus.hready.value.is_resolvable:
-                if self.bus.htrans.value == 0 and self.bus.hready == 0:
-                    raise AssertionError("AHB PROTOCOL VIOLATION - TEST")
 
             # print(f"pending: {pending}")
             # Ensure master does not change its qualifiers before hready
