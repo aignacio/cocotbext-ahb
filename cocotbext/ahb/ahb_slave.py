@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 16.10.2023
-# Last Modified Date: 12.11.2023
+# Last Modified Date: 13.11.2023
 
 import cocotb
 import logging
@@ -118,7 +118,6 @@ class AHBLiteSlave:
             # Check for new txn
             if (
                 (cur_hready == 1)
-                and (cur_hresp != AHBResp.ERROR)
                 and self._check_inputs()
                 and self._check_valid_txn()
             ):

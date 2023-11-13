@@ -181,6 +181,8 @@ class AHBLiteMaster:
     ):
 ```
 
+In case of AHB Slave error response, the master will cancel the current transaction changing HTRANS from NSEQ to IDLE in the second clock cycle of the error response and then it will retry immediately after (following clock cycle). This is not mandatory but gives time for the master to decide whether it needs to be aborted or not the following transaction.
+
 Its methods are composed by **read()**, **write()** and **custom()**. 
 
 #### Write
@@ -277,6 +279,11 @@ class AHBLiteSlave:
 ```
 
 The AHB slaves will not provide any specific data (always zero) or unexpected response, they serve as a basic slave just to check its connectivity while testing AHB Master and as a base class for the AHB Lite Slave RAM. The back-pressure feature is a way to force the slave to demonstrated unavailability while the master issue AHB transactions. The generator needs to return bool type values where bool True indicates slave available and bool False indicate slave unavailable. 
+
+In case of an AHB error response, the Slave inserts a wait state (HREADY == LOW && HRESP == OKAY) however this not required and might change in the future sticking only to the mandatory obligation of 2-cycle error response:
+
+* First: HREADY == LOW / HRESP == ERROR
+* Second: HREADY == HIGH / HRESP == ERROR
 
 #### AHB Lite Slave RAM 
 

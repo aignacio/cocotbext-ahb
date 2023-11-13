@@ -52,6 +52,9 @@ class AHBMonitor:
 
         while True:
             await FallingEdge(self.clk)
+            if self.bus.htrans.value.is_resolvable and self.bus.hready.value.is_resolvable:
+                if self.bus.htrans.value == 0 and self.bus.hready == 0:
+                    raise AssertionError("AHB PROTOCOL VIOLATION - TEST")
 
             # print(f"pending: {pending}")
             # Ensure master does not change its qualifiers before hready
