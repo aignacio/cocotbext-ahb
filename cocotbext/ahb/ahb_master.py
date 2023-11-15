@@ -27,7 +27,7 @@ class AHBLiteMaster:
         clock: str,
         reset: str,
         timeout: int = 100,
-        def_val: Union[int, str] = "Z",
+        def_val: Union[int, str] = 0,  # Can be set to "Z",
         name: str = "ahb_lite",
         **kwargs,
     ):
@@ -51,11 +51,17 @@ class AHBLiteMaster:
             if signal not in ["hready", "hresp", "hrdata"]:
                 sig = getattr(self.bus, signal)
                 try:
-                    default_value = self._get_def(len(sig))
-                    sig.value = default_value
-                    # setimmediatevalue seems to not work with some designs
-                    # decided to move to normal assign
-                    # sig.setimmediatevalue(default_value)
+                    sig.setimmediatevalue(self._get_def(len(sig)))
+                except AttributeError:
+                    pass
+
+    def _reset_bus(self) -> None:
+        """Initialize the bus with default value."""
+        for signal in self.bus._signals:
+            if signal not in ["hready", "hresp", "hrdata"]:
+                sig = getattr(self.bus, signal)
+                try:
+                    sig.value = self._get_def(len(sig))
                 except AttributeError:
                     pass
 
@@ -167,7 +173,7 @@ class AHBLiteMaster:
                 trans[index],
             )
             if index == len(address) - 1:
-                self._init_bus()
+                self._reset_bus()
             else:
                 self._addr_phase(txn_addr, txn_size, txn_mode, txn_trans)
                 if txn_addr != self.def_val:
@@ -243,7 +249,7 @@ class AHBLiteMaster:
                 first_txn = True
                 restart = False
 
-        self._init_bus()
+        self._reset_bus()
         return response
 
     async def write(
