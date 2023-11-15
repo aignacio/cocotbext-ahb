@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 14.11.2023
+# Last Modified Date: 15.11.2023
 
 import cocotb
 import logging
@@ -52,7 +52,10 @@ class AHBLiteMaster:
                 sig = getattr(self.bus, signal)
                 try:
                     default_value = self._get_def(len(sig))
-                    sig.setimmediatevalue(default_value)
+                    sig.value = default_value
+                    # setimmediatevalue seems to not work with some designs
+                    # decided to move to normal assign
+                    # sig.setimmediatevalue(default_value)
                 except AttributeError:
                     pass
 
@@ -141,7 +144,7 @@ class AHBLiteMaster:
         mode: Sequence[AHBWrite],
         trans: Sequence[AHBTrans],
         pip: bool = False,
-        sync: bool = True
+        sync: bool = False,
     ) -> Sequence[dict]:
         """Drives the AHB transaction into the bus."""
         response = []
@@ -249,7 +252,7 @@ class AHBLiteMaster:
         value: Union[int, Sequence[int]],
         size: Optional[Union[int, Sequence[int]]] = None,
         pip: Optional[bool] = False,
-        sync: Optional[bool] = True
+        sync: Optional[bool] = False,
     ) -> Sequence[dict]:
         """Write data in the AHB bus."""
 
@@ -301,14 +304,16 @@ class AHBLiteMaster:
         width = len(self.bus.htrans)
         t_trans = self._create_vector(t_trans, width, "address_ph", pip)
 
-        return await self._send_txn(t_address, t_value, t_size, t_mode, t_trans, pip, sync)
+        return await self._send_txn(
+            t_address, t_value, t_size, t_mode, t_trans, pip, sync
+        )
 
     async def read(
         self,
         address: Union[int, Sequence[int]],
         size: Optional[Union[int, Sequence[int]]] = None,
         pip: Optional[bool] = False,
-        sync: Optional[bool] = True
+        sync: Optional[bool] = False,
     ) -> Sequence[dict]:
         """Read data from the AHB bus."""
 
@@ -351,7 +356,9 @@ class AHBLiteMaster:
         width = len(self.bus.htrans)
         t_trans = self._create_vector(t_trans, width, "address_ph", pip)
 
-        return await self._send_txn(t_address, t_value, t_size, t_mode, t_trans, pip, sync)
+        return await self._send_txn(
+            t_address, t_value, t_size, t_mode, t_trans, pip, sync
+        )
 
     async def custom(
         self,
@@ -360,7 +367,7 @@ class AHBLiteMaster:
         mode: Union[int, Sequence[int]],
         size: Optional[Union[int, Sequence[int]]] = None,
         pip: Optional[bool] = True,
-        sync: Optional[bool] = True
+        sync: Optional[bool] = False,
     ) -> Sequence[dict]:
         """Back-to-Back operation"""
 
@@ -410,7 +417,9 @@ class AHBLiteMaster:
         width = len(self.bus.htrans)
         t_trans = self._create_vector(t_trans, width, "address_ph", pip)
 
-        return await self._send_txn(t_address, t_value, t_size, t_mode, t_trans, pip, sync)
+        return await self._send_txn(
+            t_address, t_value, t_size, t_mode, t_trans, pip, sync
+        )
 
 
 class AHBMaster(AHBLiteMaster):
