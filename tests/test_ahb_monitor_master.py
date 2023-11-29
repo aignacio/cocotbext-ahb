@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 27.10.2023
+# Last Modified Date: 29.11.2023
 
 import cocotb
 import os
@@ -53,38 +53,38 @@ async def setup_dut(dut, cycles):
 async def run_test(dut):  # , msig="hsel"):
     await setup_dut(dut, cfg.RST_CYCLES)
 
-    ahb_mon = AHBMonitor(AHBBus.from_prefix(dut, "slave"), dut.hclk, dut.hresetn)
+    ahb_mon = AHBMonitor(AHBBus.from_entity(dut), dut.hclk, dut.hresetn)
 
     type(ahb_mon)
 
     msig = pick_random_value(["hsel", "haddr", "hsize", "htrans", "hwrite"])
 
-    dut.slave_hsel.value = 1
-    dut.slave_haddr.value = 0xDEADBEEF
-    dut.slave_hsize.value = 0x2
-    dut.slave_htrans.value = AHBTrans.NONSEQ
-    dut.slave_hwdata.value = 0xBABEBABE
-    dut.slave_hwrite.value = 1
-    dut.slave_hready_in.value = 1
+    dut.hsel.value = 1
+    dut.haddr.value = 0xDEADBEEF
+    dut.hsize.value = 0x2
+    dut.htrans.value = AHBTrans.NONSEQ
+    dut.hwdata.value = 0xBABEBABE
+    dut.hwrite.value = 1
+    dut.hready_in.value = 1
 
-    dut.master_hready.value = 0
-    dut.master_hresp.value = 0
-    dut.master_hrdata.value = 0
+    dut.hready.value = 0
+    dut.hresp.value = 0
+    dut.hrdata.value = 0
 
     await ClockCycles(dut.hclk, 1)
 
     # Test bad master - Master changes address phase qualifiers
-    dut.slave_hsel.value = 1 if msig != "hsel" else 0
-    dut.slave_haddr.value = 0xDEADBEEF if msig != "haddr" else 0
-    dut.slave_hsize.value = 0x2 if msig != "hsize" else 0
-    dut.slave_htrans.value = AHBTrans.NONSEQ if msig != "htrans" else 0
-    dut.slave_hwdata.value = 0xBABEBABE
-    dut.slave_hwrite.value = 1 if msig != "hwrite" else 0
-    dut.slave_hready_in.value = 1
+    dut.hsel.value = 1 if msig != "hsel" else 0
+    dut.haddr.value = 0xDEADBEEF if msig != "haddr" else 0
+    dut.hsize.value = 0x2 if msig != "hsize" else 0
+    dut.htrans.value = AHBTrans.NONSEQ if msig != "htrans" else 0
+    dut.hwdata.value = 0xBABEBABE
+    dut.hwrite.value = 1 if msig != "hwrite" else 0
+    dut.hready_in.value = 1
 
-    dut.master_hready.value = 0
-    dut.master_hresp.value = 0
-    dut.master_hrdata.value = 0
+    dut.hready.value = 0
+    dut.hresp.value = 0
+    dut.hrdata.value = 0
 
     await ClockCycles(dut.hclk, 2)
 

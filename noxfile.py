@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 12.11.2023
+# Last Modified Date: 29.11.2023
 
 import nox
 
@@ -19,6 +19,7 @@ def run(session):
     session.install(
         "pytest",
         "pytest-xdist",
+        "pytest-sugar",
         "pytest-cov",
         "pytest-split",
         "cocotb-bus == 0.2.1",
@@ -27,11 +28,11 @@ def run(session):
     )
     session.install("-e", ".")
     session.run(
-        "pytest",
+        "py.test",
         "--cov=cocotbext",
         "--cov-branch",
         "--cov-report=xml",
-        "-rP",
+        "-rf",
         "-n",
         "auto",
         *session.posargs

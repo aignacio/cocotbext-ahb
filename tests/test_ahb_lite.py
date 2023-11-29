@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 27.10.2023
+# Last Modified Date: 29.11.2023
 
 import cocotb
 import os
@@ -56,11 +56,11 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
     await setup_dut(dut, cfg.RST_CYCLES)
 
     ahb_lite_master = AHBLiteMaster(
-        AHBBus.from_prefix(dut, "slave"), dut.hclk, dut.hresetn, def_val="Z"
+        AHBBus.from_entity(dut), dut.hclk, dut.hresetn, def_val="Z"
     )
 
     ahb_lite_slave = AHBLiteSlave(
-        AHBBus.from_prefix(dut, "master"), dut.hclk, dut.hresetn, def_val=0, bp=bp_fn
+        AHBBus.from_entity(dut), dut.hclk, dut.hresetn, def_val=0, bp=bp_fn
     )
 
     type(ahb_lite_slave)

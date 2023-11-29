@@ -3,7 +3,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 29.10.2023
+# Last Modified Date: 29.11.2023
 
 import cocotb
 import os
@@ -57,13 +57,13 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
 
     await setup_dut(dut, cfg.RST_CYCLES)
 
-    ahb_lite_mon = AHBMonitor(AHBBus.from_prefix(dut, "slave"), dut.hclk, dut.hresetn)
+    ahb_lite_mon = AHBMonitor(AHBBus.from_entity(dut), dut.hclk, dut.hresetn)
 
     # Below is only required bc of flake8 - non-used rule
     type(ahb_lite_mon)
 
     ahb_lite_sram = AHBLiteSlaveRAM(
-        AHBBus.from_prefix(dut, "master"),
+        AHBBus.from_entity(dut),
         dut.hclk,
         dut.hresetn,
         def_val=0,
@@ -75,7 +75,7 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
     type(ahb_lite_sram)
 
     ahb_lite_master = AHBLiteMaster(
-        AHBBus.from_prefix(dut, "slave"), dut.hclk, dut.hresetn, def_val="Z"
+        AHBBus.from_entity(dut), dut.hclk, dut.hresetn, def_val="Z"
     )
 
     # Generate a list of unique addresses with the double of memory size
