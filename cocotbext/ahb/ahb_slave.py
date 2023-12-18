@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 16.10.2023
-# Last Modified Date: 13.11.2023
+# Last Modified Date: 18.12.2023
 
 import cocotb
 import logging
@@ -116,11 +116,7 @@ class AHBLiteSlave:
                         self.bus.hresp.value = AHBResp.OKAY
 
             # Check for new txn
-            if (
-                (cur_hready == 1)
-                and self._check_inputs()
-                and self._check_valid_txn()
-            ):
+            if (cur_hready == 1) and self._check_inputs() and self._check_valid_txn():
                 txn_addr = self.bus.haddr.value
                 txn_size = AHBSize(self.bus.hsize.value)
                 txn_type = AHBWrite(self.bus.hwrite.value)
@@ -249,17 +245,128 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
 
     def _wr(self, addr: int, size: AHBSize, value: BinaryValue) -> int:
         if size == AHBSize.BYTE:
-            data = value & 0xFF
+            # Mask the data to a single byte
+            data = value.integer & 0xFF
+
+            # Get the byte offset
+            if self.bus._data_width == 32:
+                byte_sel = addr & 0x3
+            elif self.bus._data_width == 64:
+                byte_sel = addr & 0x7
+
+            # Get the (d)word aligned addr
+            if self.bus._data_width == 32:
+                addr_aligned = addr & 0xFFFF_FFFC
+            elif self.bus._data_width == 64:
+                addr_aligned = addr & 0xFFFF_FFF8
+
+            # Get the (d)word data from the memory
+            if self.bus._data_width == 32:
+                mem_data = self.memory.read(addr_aligned, 4)
+            elif self.bus._data_width == 64:
+                mem_data = self.memory.read(addr_aligned, 8)
+
+            mem_data = int.from_bytes(mem_data, byteorder='little')
+
+            # Zero the N-th byte
+            mem_data = ~(0xFF << (byte_sel * 8)) & mem_data
+
+            # OR with the new value
+            mem_data = (data << (byte_sel * 8)) | mem_data
+
+            # Convert into 32/64-bit int byte array
+            if self.bus._data_width == 32:
+                ba_data = mem_data.to_bytes(4, byteorder="little")
+            elif self.bus._data_width == 64:
+                ba_data = mem_data.to_bytes(8, byteorder="little")
+
+            # Write the data back to the memory
+            self.memory.write(addr_aligned, ba_data)
         elif size == AHBSize.HWORD:
-            data = value & 0xFFFF
+            # Mask the data to a half-word
+            data = value.integer & 0xFFFF
+
+            # Get the half-word offset
+            if self.bus._data_width == 32:
+                hword_sel = addr & 0x3
+            elif self.bus._data_width == 64:
+                hword_sel = addr & 0x7
+
+            if (hword_sel & 0x1) != 0x0:
+                raise AssertionError("Half-word write addr LSB has to be 0x0")
+
+            # Get the (d)word aligned addr
+            if self.bus._data_width == 32:
+                addr_aligned = addr & 0xFFFF_FFFC
+            elif self.bus._data_width == 64:
+                addr_aligned = addr & 0xFFFF_FFF8
+
+            # Get the (d)word data from the memory
+            if self.bus._data_width == 32:
+                mem_data = self.memory.read(addr_aligned, 4)
+            elif self.bus._data_width == 64:
+                mem_data = self.memory.read(addr_aligned, 8)
+
+            mem_data = int.from_bytes(mem_data, byteorder='little')
+
+            # Zero the N-th h-word
+            mem_data = ~(0xFFFF << (hword_sel * 8)) & mem_data
+
+            # OR with the new value
+            mem_data = (data << (hword_sel * 8)) | mem_data
+
+            # Convert into 32-bit int byte array
+            if self.bus._data_width == 32:
+                ba_data = mem_data.to_bytes(4, byteorder="little")
+            elif self.bus._data_width == 64:
+                ba_data = mem_data.to_bytes(8, byteorder="little")
+
+            # Write the data back to the memory
+            self.memory.write(addr_aligned, ba_data)
         elif size == AHBSize.WORD:
-            data = value & 0xFFFFFFFF
+            if self.bus._data_width == 32:
+                lsbs = addr & 0x3
+                if lsbs != 0x0:
+                    raise AssertionError("Word write addr LSB needs to be 0x0")
+                ba_data = value.integer.to_bytes(4, byteorder="little")
+                self.memory.write(addr, ba_data)
+
+            elif self.bus._data_width == 64:
+                # Mask the data to a half-word
+                data = value.integer & 0xFFFF_FFFF
+
+                # Get the word offset
+                word_sel = addr & 0x7
+
+                if (word_sel & 0x3) != 0x0:
+                    raise AssertionError("Word write addr LSBs have to be 0x0")
+
+                # Get the (d)word aligned addr
+                addr_aligned = addr & 0xFFFF_FFF8
+
+                # Get the (d)word data from the memory
+                mem_data = self.memory.read(addr_aligned, 8)
+
+                mem_data = int.from_bytes(mem_data, byteorder='little')
+
+                # Zero the N-th word
+                mem_data = ~(0xFFFF_FFFF << (word_sel * 8)) & mem_data
+
+                # OR with the new value
+                mem_data = (data << (word_sel * 8)) | mem_data
+
+                # Convert into 32-bit int byte array
+                ba_data = mem_data.to_bytes(8, byteorder="little")
+
+                # Write the data back to the memory
+                self.memory.write(addr_aligned, ba_data)
         elif size == AHBSize.DWORD:
-            data = value & 0xFFFFFFFFFFFFFFFF
+            lsbs = addr & 0x7
+            if lsbs != 0x0:
+                raise AssertionError("Dword write addr LSB needs to be 0x0")
+            ba_data = value.integer.to_bytes(8, byteorder="little")
+            self.memory.write(addr, ba_data)
 
-        data = data.to_bytes(2**size, byteorder="little")
-
-        self.memory.write(addr, data)
         return 0
 
 

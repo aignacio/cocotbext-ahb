@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sun Oct 22 12:33:51 2023
+[*] Sun Dec 10 16:59:29 2023
 [*]
-[dumpfile] "run_dir/sim_build_icarus_test_ahb_lite/ahb_template.fst"
-[dumpfile_mtime] "Sun Oct 22 12:31:12 2023"
-[dumpfile_size] 9600
+[dumpfile] "run_dir/sim_build_icarus_test_ahb_lite_sram_no_errors/ahb_template.fst"
+[dumpfile_mtime] "Sun Dec 10 16:52:49 2023"
+[dumpfile_size] 1031
 [savefile] "/Users/aignacio/projects/cocotbext-ahb/docs_utils/template.gtkw"
-[timestart] 17937500
-[size] 1896 1028
-[pos] 1977 0
-*-15.046850 18043200 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[timestart] 0
+[size] 2680 1028
+[pos] 2007 278
+*-14.146851 30000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [sst_width] 253
 [signals_width] 263
 [sst_expanded] 1
@@ -19,41 +19,25 @@ ahb_template.hresetn
 ahb_template.hclk
 @200
 -
--slave
 @28
-ahb_template.slave_hsel
+ahb_template.hsel
 @22
-ahb_template.slave_haddr[31:0]
+ahb_template.haddr[31:0]
+@29
+ahb_template.hwrite
 @28
-ahb_template.slave_hsize[2:0]
-ahb_template.slave_htrans[1:0]
-ahb_template.slave_hwrite
-@22
-ahb_template.slave_hwdata[31:0]
+ahb_template.hsize[2:0]
+@100000028
+ahb_template.htrans[1:0]
 @28
-ahb_template.slave_hready_in
-ahb_template.slave_hready
-ahb_template.slave_hresp
+ahb_template.hready_in
+ahb_template.hburst[2:0]
 @22
-ahb_template.slave_hrdata[31:0]
-@200
--
--master
-@23
-ahb_template.master_hsel[31:0]
-@22
-ahb_template.master_haddr[31:0]
+ahb_template.hrdata[31:0]
 @28
-ahb_template.master_hsize[2:0]
-ahb_template.master_htrans[1:0]
-ahb_template.master_hwrite
+ahb_template.hready
+ahb_template.hresp
 @22
-ahb_template.master_hwdata[31:0]
-@28
-ahb_template.master_hready_in
-ahb_template.master_hready
-ahb_template.master_hresp
-@22
-ahb_template.master_hrdata[31:0]
+ahb_template.hwdata[31:0]
 [pattern_trace] 1
 [pattern_trace] 0
