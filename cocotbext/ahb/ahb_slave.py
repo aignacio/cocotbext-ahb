@@ -238,6 +238,18 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
             return False
         return True
 
+    def _get_addr_aligned(self, addr: int) -> int:
+        if self.bus._data_width == 32:
+            if self.bus._addr_width == 32:
+                return addr & 0xFFFF_FFFC
+            elif self.bus._addr_width == 64:
+                return addr & 0xFFFF_FFFF_FFFF_FFFC
+        elif self.bus._data_width == 64:
+            if self.bus._addr_width == 32:
+                return addr & 0xFFFF_FFF8
+            elif self.bus._addr_width == 64:
+                return addr & 0xFFFF_FFFF_FFFF_FFF8
+
     def _rd(self, addr: int, size: AHBSize) -> int:
         data = self.memory.read(addr, 2**size)
         data = int.from_bytes(data, byteorder="little")
@@ -255,10 +267,7 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
                 byte_sel = addr & 0x7
 
             # Get the (d)word aligned addr
-            if self.bus._data_width == 32:
-                addr_aligned = addr & 0xFFFF_FFFC
-            elif self.bus._data_width == 64:
-                addr_aligned = addr & 0xFFFF_FFF8
+            addr_aligned = self._get_addr_aligned(addr)
 
             # Get the (d)word data from the memory
             if self.bus._data_width == 32:
@@ -266,7 +275,7 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
             elif self.bus._data_width == 64:
                 mem_data = self.memory.read(addr_aligned, 8)
 
-            mem_data = int.from_bytes(mem_data, byteorder='little')
+            mem_data = int.from_bytes(mem_data, byteorder="little")
 
             # Zero the N-th byte
             mem_data = ~(0xFF << (byte_sel * 8)) & mem_data
@@ -296,10 +305,7 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
                 raise AssertionError("Half-word write addr LSB has to be 0x0")
 
             # Get the (d)word aligned addr
-            if self.bus._data_width == 32:
-                addr_aligned = addr & 0xFFFF_FFFC
-            elif self.bus._data_width == 64:
-                addr_aligned = addr & 0xFFFF_FFF8
+            addr_aligned = self._get_addr_aligned(addr)
 
             # Get the (d)word data from the memory
             if self.bus._data_width == 32:
@@ -307,7 +313,7 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
             elif self.bus._data_width == 64:
                 mem_data = self.memory.read(addr_aligned, 8)
 
-            mem_data = int.from_bytes(mem_data, byteorder='little')
+            mem_data = int.from_bytes(mem_data, byteorder="little")
 
             # Zero the N-th h-word
             mem_data = ~(0xFFFF << (hword_sel * 8)) & mem_data
@@ -342,12 +348,12 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
                     raise AssertionError("Word write addr LSBs have to be 0x0")
 
                 # Get the (d)word aligned addr
-                addr_aligned = addr & 0xFFFF_FFF8
+                addr_aligned = self._get_addr_aligned(addr)
 
                 # Get the (d)word data from the memory
                 mem_data = self.memory.read(addr_aligned, 8)
 
-                mem_data = int.from_bytes(mem_data, byteorder='little')
+                mem_data = int.from_bytes(mem_data, byteorder="little")
 
                 # Zero the N-th word
                 mem_data = ~(0xFFFF_FFFF << (word_sel * 8)) & mem_data
