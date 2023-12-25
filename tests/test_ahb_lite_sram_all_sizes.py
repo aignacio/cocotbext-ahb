@@ -64,7 +64,6 @@ async def setup_dut(dut, cycles):
 @cocotb.test()
 async def run_test(dut, bp_fn=None, pip_mode=False):
     mem_size_kib = 16
-    N = 1000
 
     ahb_bus_slave = AHBBus.from_entity(dut)
 
