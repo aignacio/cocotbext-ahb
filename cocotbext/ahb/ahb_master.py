@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 15.11.2023
+# Last Modified Date: 25.12.2023
 
 import cocotb
 import logging
@@ -184,7 +184,7 @@ class AHBLiteMaster:
                             f"\tID = {index}\n"
                             f"\tADDR = 0x{txn_addr:x}\n"
                             f"\tDATA = 0x{value[index+1]:x}\n"
-                            f"\tSIZE = {txn_size}"
+                            f"\tSIZE = {txn_size} bytes"
                         )
             self.bus.hwdata.value = txn_data
             if self.bus.hready_in_exist:

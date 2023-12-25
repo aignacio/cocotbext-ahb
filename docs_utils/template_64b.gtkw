@@ -1,57 +1,106 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Mon Oct 30 18:55:22 2023
+[*] Mon Dec 25 19:36:33 2023
 [*]
-[dumpfile] "run_dir/sim_build_icarus_test_ahb_lite_sram_data_width_64_bits/ahb_template.fst"
-[dumpfile_mtime] "Mon Oct 30 18:52:23 2023"
-[dumpfile_size] 123189
+[dumpfile] "./run_dir/sim_build_icarus_test_ahb_lite_sram_all_sizes_data_width_64_bits/ahb_template.fst"
+[dumpfile_mtime] "Mon Dec 25 19:32:54 2023"
+[dumpfile_size] 1768
 [savefile] "/Users/aignacio/projects/cocotbext-ahb/docs_utils/template_64b.gtkw"
 [timestart] 0
-[size] 1440 771
-[pos] 577 0
-*-25.811741 18043200 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[size] 3008 1554
+[pos] 1890 802
+*-16.359070 103180 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [sst_width] 253
 [signals_width] 315
 [sst_expanded] 1
-[sst_vpaned_height] 252
+[sst_vpaned_height] 566
 @28
 ahb_template.hresetn
 ahb_template.hclk
 @200
 -
--slave
 @28
-ahb_template.slave_hsel
+ahb_template.hsel
 @22
-ahb_template.slave_haddr[31:0]
+ahb_template.haddr[31:0]
 @28
-ahb_template.slave_hsize[2:0]
-ahb_template.slave_htrans[1:0]
-ahb_template.slave_hwrite
-@23
-ahb_template.slave_hwdata[63:0]
+ahb_template.hready_in
+ahb_template.htrans[1:0]
+ahb_template.hsize[2:0]
+ahb_template.hwrite
+@22
+ahb_template.hwdata[63:0]
 @28
-ahb_template.slave_hready_in
-ahb_template.slave_hready
-ahb_template.slave_hresp
-@22
-ahb_template.slave_hrdata[63:0]
-@200
--
--master
-@22
-ahb_template.master_haddr[31:0]
-@28
-ahb_template.master_hsize[2:0]
-ahb_template.master_htrans[1:0]
-ahb_template.master_hwrite
-@22
-ahb_template.master_hwdata[63:0]
-@28
-ahb_template.master_hready_in
-ahb_template.master_hready
-ahb_template.master_hresp
-@22
-ahb_template.master_hrdata[63:0]
+ahb_template.hready
+ahb_template.hresp
+@c00023
+ahb_template.hrdata[63:0]
+@29
+(0)ahb_template.hrdata[63:0]
+(1)ahb_template.hrdata[63:0]
+(2)ahb_template.hrdata[63:0]
+(3)ahb_template.hrdata[63:0]
+(4)ahb_template.hrdata[63:0]
+(5)ahb_template.hrdata[63:0]
+(6)ahb_template.hrdata[63:0]
+(7)ahb_template.hrdata[63:0]
+(8)ahb_template.hrdata[63:0]
+(9)ahb_template.hrdata[63:0]
+(10)ahb_template.hrdata[63:0]
+(11)ahb_template.hrdata[63:0]
+(12)ahb_template.hrdata[63:0]
+(13)ahb_template.hrdata[63:0]
+(14)ahb_template.hrdata[63:0]
+(15)ahb_template.hrdata[63:0]
+(16)ahb_template.hrdata[63:0]
+(17)ahb_template.hrdata[63:0]
+(18)ahb_template.hrdata[63:0]
+(19)ahb_template.hrdata[63:0]
+(20)ahb_template.hrdata[63:0]
+(21)ahb_template.hrdata[63:0]
+(22)ahb_template.hrdata[63:0]
+(23)ahb_template.hrdata[63:0]
+(24)ahb_template.hrdata[63:0]
+(25)ahb_template.hrdata[63:0]
+(26)ahb_template.hrdata[63:0]
+(27)ahb_template.hrdata[63:0]
+(28)ahb_template.hrdata[63:0]
+(29)ahb_template.hrdata[63:0]
+(30)ahb_template.hrdata[63:0]
+(31)ahb_template.hrdata[63:0]
+(32)ahb_template.hrdata[63:0]
+(33)ahb_template.hrdata[63:0]
+(34)ahb_template.hrdata[63:0]
+(35)ahb_template.hrdata[63:0]
+(36)ahb_template.hrdata[63:0]
+(37)ahb_template.hrdata[63:0]
+(38)ahb_template.hrdata[63:0]
+(39)ahb_template.hrdata[63:0]
+(40)ahb_template.hrdata[63:0]
+(41)ahb_template.hrdata[63:0]
+(42)ahb_template.hrdata[63:0]
+(43)ahb_template.hrdata[63:0]
+(44)ahb_template.hrdata[63:0]
+(45)ahb_template.hrdata[63:0]
+(46)ahb_template.hrdata[63:0]
+(47)ahb_template.hrdata[63:0]
+(48)ahb_template.hrdata[63:0]
+(49)ahb_template.hrdata[63:0]
+(50)ahb_template.hrdata[63:0]
+(51)ahb_template.hrdata[63:0]
+(52)ahb_template.hrdata[63:0]
+(53)ahb_template.hrdata[63:0]
+(54)ahb_template.hrdata[63:0]
+(55)ahb_template.hrdata[63:0]
+(56)ahb_template.hrdata[63:0]
+(57)ahb_template.hrdata[63:0]
+(58)ahb_template.hrdata[63:0]
+(59)ahb_template.hrdata[63:0]
+(60)ahb_template.hrdata[63:0]
+(61)ahb_template.hrdata[63:0]
+(62)ahb_template.hrdata[63:0]
+(63)ahb_template.hrdata[63:0]
+@1401201
+-group_end
 [pattern_trace] 1
 [pattern_trace] 0

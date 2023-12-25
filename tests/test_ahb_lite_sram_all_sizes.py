@@ -3,7 +3,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 18.12.2023
+# Last Modified Date: 25.12.2023
 
 import cocotb
 import os
@@ -15,8 +15,19 @@ from const import cfg
 from cocotb_test.simulator import run
 from cocotb.triggers import ClockCycles
 from cocotb.clock import Clock
-from cocotbext.ahb import AHBBus, AHBLiteMaster, AHBLiteSlaveRAM, AHBResp, AHBMonitor
+from cocotbext.ahb import (
+    AHBBus,
+    AHBLiteMaster,
+    AHBLiteSlaveRAM,
+    AHBResp,
+    AHBMonitor,
+    AHBSize,
+)
 from cocotb.regression import TestFactory
+
+
+def get_rnd_addr(mem_size_kib: int = 0):
+    return random.randint(0, ((mem_size_kib - 1) * 1024) - 1) & 0xFFFF_FFF8
 
 
 def rnd_val(bit: int = 0, zero: bool = True):
@@ -58,13 +69,7 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
     ahb_bus_slave = AHBBus.from_entity(dut)
 
     data_width = ahb_bus_slave.data_width
-
-    await setup_dut(dut, cfg.RST_CYCLES)
-
-    ahb_lite_mon = AHBMonitor(ahb_bus_slave, dut.hclk, dut.hresetn)
-
-    # Below is only required bc of flake8 - non-used rule
-    type(ahb_lite_mon)
+    n_bytes = data_width // 8
 
     ahb_lite_sram = AHBLiteSlaveRAM(
         AHBBus.from_entity(dut),
@@ -82,49 +87,26 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
         AHBBus.from_entity(dut), dut.hclk, dut.hresetn, def_val="Z"
     )
 
-    # Generate a list of unique addresses with the double of memory size
-    # to create error responses
-    address = random.sample(range(0, 2 * mem_size_kib * 1024, 8), N)
-    # Generate a list of random 32-bit values
-    value = [rnd_val(data_width) for _ in range(N)]
-    # Generate a list of random sizes
-    if data_width == 32:
-        size = [pick_random_value([1, 2, 4]) for _ in range(N)]
-    else:
-        size = [pick_random_value([1, 2, 4, 8]) for _ in range(N)]
+    await setup_dut(dut, cfg.RST_CYCLES)
 
-    # Create the comparison list with expected results
-    expected = []
-    for addr, val, sz in zip(address, value, size):
-        resp, data = 0, 0
-        if addr >= mem_size_kib * 1024:
-            resp = AHBResp.ERROR
-        else:
-            resp = AHBResp.OKAY
-            if sz == 1:
-                data = val & 0xFF
-            elif sz == 2:
-                data = val & 0xFFFF
-            elif sz == 4:
-                data = val & 0xFFFFFFFF
-            elif sz == 8:
-                data = val & 0xFFFFFFFFFFFFFFFF
-        expected.append({"resp": resp, "data": hex(data)})
+    seq_ops = [1, 2, 4] if data_width == 32 else [1, 2, 4, 8]
+    mask = [0xFF, 0xFFFF, 0xFFFF_FFFF, 0xFFFF_FFFF_FFFF_FFFF]
 
-    # Perform the writes and reads
-    resp = await ahb_lite_master.write(address, value, size, pip=pip_mode)
-    resp = await ahb_lite_master.read(address, size, pip=pip_mode)
-    print(resp)
-    # Compare all txns
-    for index, (real, expect) in enumerate(zip(resp, expected)):
-        if real != expect:
-            print("------ERROR------")
-            print(f"Txn ID: {index}")
-            print("DUT")
-            print(real)
-            print("Expected")
-            print(expect)
-            assert real == expect, "DUT != Expected"
+    for index, byte_mode in enumerate(seq_ops):
+        address_dw_aligned = get_rnd_addr(mem_size_kib)
+        addr = [address_dw_aligned + i for i in range(0, n_bytes, byte_mode)]
+        data = [rnd_val(data_width, False) for i in range(len(addr))]
+        size = [byte_mode for i in range(len(addr))]
+        resp_wr = await ahb_lite_master.write(addr, data, size, pip=pip_mode)
+        print(resp_wr)
+        expect = sum(
+            (data[i // byte_mode] & mask[index]) << (8 * i)
+            for i in range(0, n_bytes, byte_mode)
+        )
+        resp_rd = await ahb_lite_master.read(address_dw_aligned, pip=pip_mode)
+        assert (
+            hex(expect) == resp_rd[0]["data"]
+        ), f"Mismatch between WR/RD {hex(expect)} != {resp_rd[0]['data']}"
 
 
 if cocotb.SIM_NAME:
