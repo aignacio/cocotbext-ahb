@@ -33,7 +33,8 @@ def run(session):
         "--cov=cocotbext",
         "--cov-branch",
         "--cov-report=xml",
-        "-rf",
+        # "-rf",
+        "-rP",
         "-n",
         "auto",
         *session.posargs

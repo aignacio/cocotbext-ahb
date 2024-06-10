@@ -48,14 +48,18 @@ async def setup_dut(dut, cycles):
     await ClockCycles(dut.hclk, cycles)
     dut.hresetn.value = 1
 
+
 def recv_txn(txn):
     print(txn)
+
 
 @cocotb.test(expect_fail=True)
 async def run_test(dut):  # , msig="hsel"):
     await setup_dut(dut, cfg.RST_CYCLES)
 
-    ahb_mon = AHBMonitor(AHBBus.from_entity(dut), dut.hclk, dut.hresetn) #, callback=recv_txn, event=fn)
+    ahb_mon = AHBMonitor(
+        AHBBus.from_entity(dut), dut.hclk, dut.hresetn
+    )  # , callback=recv_txn, event=fn)
 
     type(ahb_mon)
 

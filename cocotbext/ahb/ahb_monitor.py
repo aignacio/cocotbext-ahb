@@ -19,28 +19,31 @@ from cocotb.triggers import RisingEdge, FallingEdge
 from cocotb.handle import SimHandleBase
 from cocotb.types import LogicArray
 from cocotb.binary import BinaryValue
-from cocotb_bus.monitors import BusMonitor
+from cocotb_bus.monitors import Monitor
 from typing import Optional, Union, Generator, List, Any
 from .memory import Memory
 
 
-class AHBMonitor(BusMonitor):
+class AHBMonitor(Monitor):
     def __init__(
-            self, bus: AHBBus, clock: str, reset: str,
-            prefix: str = None, **kwargs: Any
+        self, bus: AHBBus, clock: str, reset: str, prefix: str = None, **kwargs: Any
     ) -> None:
         name = prefix if prefix is not None else bus.entity._name + "_ahb_monitor"
 
         self.clk = clock
         self.rst = reset
-
-        BusMonitor.__init__(self, bus.entity, name, clock, reset, **kwargs)
         self.bus = bus
+
+        # We extend from Monitor base class because we don't need to recreate
+        # the internal bus property as it already exists from AHBBus
+        Monitor.__init__(self, **kwargs)
+
         self.log.info(f"AHB ({name}) Monitor")
         self.log.info("cocotbext-ahb version %s", __version__)
-        self.log.info(f"Copyright (c) {datetime.datetime.now().year} Anderson Ignacio da Silva")
+        self.log.info(
+            f"Copyright (c) {datetime.datetime.now().year} Anderson Ignacio da Silva"
+        )
         self.log.info("https://github.com/aignacio/cocotbext-ahb")
-
 
     async def _monitor_recv(self):
         """Watch the pins and reconstruct transactions."""
@@ -49,7 +52,15 @@ class AHBMonitor(BusMonitor):
         stable_signals = {}
 
         while True:
+            curr_hready = copy.deepcopy(self.bus.hready.value)
+
             await FallingEdge(self.clk)
+
+            if (self.bus.hready == 1) and self.bus.hresp == AHBResp.ERROR:
+                if curr_hready != 0:
+                    raise AssertionError(
+                        "AHB PROTOCOL VIOLATION: Previous hready must be low when AHB Resp == Error and hready == 1"
+                    )
 
             # print(f"pending: {pending}")
             # Ensure master does not change its qualifiers before hready
@@ -80,7 +91,7 @@ class AHBMonitor(BusMonitor):
                     stable_signals["hsel"] = copy.deepcopy(self.bus.hsel.value)
             else:
                 pending = False
- 
+
     def _check_inputs(self) -> bool:
         """Check any of the master signals are resolvable (i.e not 'z')"""
         signals = {
