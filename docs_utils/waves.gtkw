@@ -1,0 +1,57 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Mon Apr 29 21:28:07 2024
+[*]
+[dumpfile] "nox_waves.fst"
+[dumpfile_mtime] "Mon Apr 29 21:24:02 2024"
+[dumpfile_size] 1845928
+[savefile] "/Users/aignacio/projects/cocotbext-ahb/docs_utils/waves.gtkw"
+[timestart] 1
+[size] 1440 900
+[pos] -1 -26
+*-2.622876 12 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[treeopen] TOP.
+[treeopen] TOP.nox_soc.
+[treeopen] TOP.nox_soc.u_iram.
+[sst_width] 253
+[signals_width] 128
+[sst_expanded] 1
+[sst_vpaned_height] 480
+@28
+TOP.nox_soc.clk
+TOP.nox_soc.rst
+@22
+TOP.nox_soc.u_nox_wrapper.instr_ahb_mosi_o.haddr[31:0]
+@100000028
+TOP.nox_soc.u_nox_wrapper.instr_ahb_mosi_o.hburst[2:0]
+@28
+TOP.nox_soc.u_nox_wrapper.instr_ahb_mosi_o.hexcl
+@22
+TOP.nox_soc.u_nox_wrapper.instr_ahb_mosi_o.hmaster[3:0]
+@28
+TOP.nox_soc.u_nox_wrapper.instr_ahb_mosi_o.hmastlock
+TOP.nox_soc.u_nox_wrapper.instr_ahb_mosi_o.hnonsec
+@22
+TOP.nox_soc.u_nox_wrapper.instr_ahb_mosi_o.hprot[6:0]
+@28
+TOP.nox_soc.u_nox_wrapper.instr_ahb_mosi_o.hready
+TOP.nox_soc.u_nox_wrapper.instr_ahb_mosi_o.hsel
+@100000028
+TOP.nox_soc.u_nox_wrapper.instr_ahb_mosi_o.hsize[2:0]
+TOP.nox_soc.u_nox_wrapper.instr_ahb_mosi_o.htrans[1:0]
+@22
+TOP.nox_soc.u_nox_wrapper.instr_ahb_mosi_o.hwdata[31:0]
+@28
+TOP.nox_soc.u_nox_wrapper.instr_ahb_mosi_o.hwrite
+@22
+[color] 2
+TOP.nox_soc.u_nox_wrapper.instr_ahb_miso_i.hrdata[31:0]
+@28
+[color] 2
+TOP.nox_soc.u_nox_wrapper.instr_ahb_miso_i.hready
+[color] 2
+TOP.nox_soc.u_nox_wrapper.instr_ahb_miso_i.hresp
+@200
+-IRAM
+[pattern_trace] 1
+[pattern_trace] 0

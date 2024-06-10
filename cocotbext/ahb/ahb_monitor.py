@@ -4,48 +4,46 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 27.10.2023
-# Last Modified Date: 13.11.2023
+# Last Modified Date: 10.06.2024
 import cocotb
 import logging
 import random
 import copy
+import datetime
 
 from .ahb_types import AHBTrans, AHBWrite, AHBSize, AHBResp
 from .ahb_bus import AHBBus
 from .version import __version__
 
 from cocotb.triggers import RisingEdge, FallingEdge
+from cocotb.handle import SimHandleBase
 from cocotb.types import LogicArray
 from cocotb.binary import BinaryValue
-from typing import Optional, Union, Generator, List
+from cocotb_bus.monitors import BusMonitor
+from typing import Optional, Union, Generator, List, Any
 from .memory import Memory
 
 
-class AHBMonitor:
+class AHBMonitor(BusMonitor):
     def __init__(
-        self,
-        bus: AHBBus,
-        clock: str,
-        reset: str,
-        name: str = "ahb_monitor",
-        **kwargs,
-    ):
-        self.bus = bus
+            self, bus: AHBBus, clock: str, reset: str,
+            prefix: str = None, **kwargs: Any
+    ) -> None:
+        name = prefix if prefix is not None else bus.entity._name + "_ahb_monitor"
+
         self.clk = clock
         self.rst = reset
-        self.log = logging.getLogger(
-            f"cocotb.{name}.{bus._name}." f"{bus._entity._name}"
-        )
-        self.log.info(f"AHB ({name}) monitor")
+
+        BusMonitor.__init__(self, bus.entity, name, clock, reset, **kwargs)
+        self.bus = bus
+        self.log.info(f"AHB ({name}) Monitor")
         self.log.info("cocotbext-ahb version %s", __version__)
-        self.log.info("Copyright (c) 2023 Anderson Ignacio da Silva")
+        self.log.info(f"Copyright (c) {datetime.datetime.now().year} Anderson Ignacio da Silva")
         self.log.info("https://github.com/aignacio/cocotbext-ahb")
 
-        cocotb.start_soon(self._mon_master_txn())
-        cocotb.start_soon(self._mon_slave_txn())
 
-    async def _mon_master_txn(self):
-        """Monitor master txns"""
+    async def _monitor_recv(self):
+        """Watch the pins and reconstruct transactions."""
 
         pending = False
         stable_signals = {}
@@ -60,6 +58,7 @@ class AHBMonitor:
             elif (pending is True) and (self.bus.hready.value == 1):
                 self._check_signals(stable_signals)
                 pending = False
+                self._recv(stable_signals)
 
             # Check for new txn
             # print(f"hready: {self.bus.hready.value}")
@@ -81,21 +80,7 @@ class AHBMonitor:
                     stable_signals["hsel"] = copy.deepcopy(self.bus.hsel.value)
             else:
                 pending = False
-
-    async def _mon_slave_txn(self):
-        """Monitor slave txns"""
-
-        while True:
-            curr_hready = copy.deepcopy(self.bus.hready.value)
-
-            await RisingEdge(self.clk)
-
-            if (self.bus.hready == 1) and self.bus.hresp == AHBResp.ERROR:
-                if curr_hready != 0:
-                    raise AssertionError(
-                        "AHB PROTOCOL VIOLATION: Previous hready must be low when AHB Resp == Error and hready == 1"
-                    )
-
+ 
     def _check_inputs(self) -> bool:
         """Check any of the master signals are resolvable (i.e not 'z')"""
         signals = {
