@@ -29,6 +29,10 @@ The repository contains a small script that starts a container fetched from Dock
 ```bash
 $ cd cocotbext-ahb/
 $ ./ship.sh
+# To run all tests
+$ nox
+# To run a specific test
+$ nox -s run -- -k "test_ahb_lite.py"
 ```
 Once the container is up and running, to run the tests through [nox](https://nox.thea.codes/en/stable/) and [pytest](https://docs.pytest.org/), run the following:
 ```bash

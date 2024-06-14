@@ -126,7 +126,6 @@ class AHBMonitor(Monitor):
                 first_txn["hwrite"] = copy.deepcopy(self.bus.hwrite.value)
             # We only enter in the if below if the last txn did not complete and the master issued a new txn
             elif (self._check_valid_txn() is True) and (first_st["phase"] == "data"):
-                print("GOT A NEW TXN")
                 second_st["phase"] = "addr"
 
                 second_txn["hsel"] = (
