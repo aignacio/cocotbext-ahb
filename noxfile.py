@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 10.06.2024
+# Last Modified Date: 14.06.2024
 
 import nox
 
@@ -13,7 +13,7 @@ import nox
 def run(session):
     session.env["DUT"] = "ahb_template"
     session.env["SIM"] = "icarus"
-    session.env["COCOTB_LOG_LEVEL"] = "debug"
+    # session.env["COCOTB_LOG_LEVEL"] = "debug"
     # session.env['SIM'] = "verilator"
     session.env["TIMEPREC"] = "1ps"
     session.env["TIMEUNIT"] = "1ns"
