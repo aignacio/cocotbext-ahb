@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 29.11.2023
+# Last Modified Date: 14.06.2024
 
 import cocotb
 import os
@@ -14,7 +14,7 @@ from const import cfg
 from cocotb_test.simulator import run
 from cocotb.triggers import ClockCycles
 from cocotb.clock import Clock
-from cocotbext.ahb import AHBBus, AHBLiteMaster, AHBLiteSlave
+from cocotbext.ahb import AHBBus, AHBLiteMaster, AHBLiteSlave, AHBMonitor
 from cocotb.regression import TestFactory
 
 
@@ -49,11 +49,22 @@ async def setup_dut(dut, cycles):
     dut.hresetn.value = 1
 
 
+def txn_recv(txn):
+    print(txn)
+
+
 @cocotb.test()
 async def run_test(dut, bp_fn=None, pip_mode=False):
     N = 1000
 
     await setup_dut(dut, cfg.RST_CYCLES)
+
+    ahb_lite_mon = AHBMonitor(
+        AHBBus.from_entity(dut), dut.hclk, dut.hresetn, "ahb_monitor", callback=txn_recv
+    )
+
+    # Below is only required bc of flake8 - non-used rule
+    type(ahb_lite_mon)
 
     ahb_lite_master = AHBLiteMaster(
         AHBBus.from_entity(dut), dut.hclk, dut.hresetn, def_val="Z"
@@ -85,9 +96,7 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
 
     txn_type = [pick_random_value([1, 0]) for _ in range(N)]
 
-    resp = await ahb_lite_master.custom(
-        address, value, txn_type, size, pip_mode
-    )
+    resp = await ahb_lite_master.custom(address, value, txn_type, size, pip_mode)
 
 
 if cocotb.SIM_NAME:

@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - 'stable/**'
+      - bus_monitor_impr
   pull_request:
     branches:
       - master

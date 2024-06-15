@@ -4,15 +4,16 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 29.11.2023
+# Last Modified Date: 14.06.2024
 
 import nox
 
 
-@nox.session(python=["3.6", "3.7", "3.8", "3.9", "3.10"])
+@nox.session(python=["3.6", "3.7", "3.8", "3.9", "3.10"], reuse_venv=True)
 def run(session):
     session.env["DUT"] = "ahb_template"
     session.env["SIM"] = "icarus"
+    # session.env["COCOTB_LOG_LEVEL"] = "debug"
     # session.env['SIM'] = "verilator"
     session.env["TIMEPREC"] = "1ps"
     session.env["TIMEUNIT"] = "1ns"
@@ -32,7 +33,8 @@ def run(session):
         "--cov=cocotbext",
         "--cov-branch",
         "--cov-report=xml",
-        "-rf",
+        # "-rf",
+        "-rP",
         "-n",
         "auto",
         *session.posargs

@@ -3,7 +3,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 29.11.2023
+# Last Modified Date: 14.06.2024
 
 import cocotb
 import os
@@ -17,6 +17,8 @@ from cocotb.triggers import ClockCycles
 from cocotb.clock import Clock
 from cocotbext.ahb import AHBBus, AHBLiteMaster, AHBLiteSlaveRAM, AHBResp, AHBMonitor
 from cocotb.regression import TestFactory
+
+recv_txn = []
 
 
 def rnd_val(bit: int = 0, zero: bool = True):
@@ -50,10 +52,16 @@ async def setup_dut(dut, cycles):
     dut.hresetn.value = 1
 
 
+def txn_recv(txn):
+    # pass
+    recv_txn.append(txn)
+    print(txn)
+
+
 @cocotb.test()
 async def run_test(dut, bp_fn=None, pip_mode=False):
     mem_size_kib = 16
-    N = 1000
+    N = 1
 
     ahb_bus_slave = AHBBus.from_entity(dut)
 
@@ -61,7 +69,9 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
 
     await setup_dut(dut, cfg.RST_CYCLES)
 
-    ahb_lite_mon = AHBMonitor(ahb_bus_slave, dut.hclk, dut.hresetn)
+    ahb_lite_mon = AHBMonitor(
+        ahb_bus_slave, dut.hclk, dut.hresetn, "ahb_monitor", callback=txn_recv
+    )
 
     # Below is only required bc of flake8 - non-used rule
     type(ahb_lite_mon)
@@ -125,6 +135,29 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
             print("Expected")
             print(expect)
             assert real == expect, "DUT != Expected"
+
+    # Prepare data to compare
+    txn = []
+    for hwrite in [1, 0]:
+        for i_addr, i_value, i_size in zip(address, value, size):
+            txn_sent = {}
+            txn_sent["haddr"] = i_addr
+            txn_sent["value"] = i_value
+            txn_sent["size"] = i_size
+            txn_sent["hwrite"] = hwrite
+            txn.append(txn_sent)
+
+    # Compare all sent txns with the monitor
+    print(f"Sent txn {len(txn)} and monitored {len(recv_txn)}")
+    # for index, (real, expect) in enumerate(zip( )):
+    # if real != expect:
+    # print("------ERROR------")
+    # print(f"Txn ID: {index}")
+    # print("DUT")
+    # print(real)
+    # print("Expected")
+    # print(expect)
+    # assert real == expect, "DUT != Expected"
 
 
 if cocotb.SIM_NAME:

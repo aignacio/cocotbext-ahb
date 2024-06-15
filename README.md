@@ -29,7 +29,14 @@ The repository contains a small script that starts a container fetched from Dock
 ```bash
 $ cd cocotbext-ahb/
 $ ./ship.sh
+# To run all tests
+$ nox
+# To run a specific test
+$ nox -s run -- -k "test_ahb_lite.py"
+# To run lint
+$ nox -s lint
 ```
+
 Once the container is up and running, to run the tests through [nox](https://nox.thea.codes/en/stable/) and [pytest](https://docs.pytest.org/), run the following:
 ```bash
 $ nox -l # See the available build options
@@ -54,7 +61,7 @@ This AHB extension is composed by master, slaves and a single monitor. Thus, the
 * **AHB Lite Master** - Perform AHB transactions in non-/pipeline mode
 * **AHB Slave** - WIP for burst support, base class AHB Lite Slave
 * **AHB Lite Slave** - Support any type of AHB transaction but burst with back-pressure option and configurable default value 
-* **AHB Monitor** - Basic monitor to check AHB transactions 
+* **AHB Monitor** - Basic monitor to check AHB transactions, extends from [Monitor](https://github.com/cocotb/cocotb-bus/blob/master/src/cocotb_bus/monitors/__init__.py#L30) cocotb-bus class 
 
 ### AHB Bus
 
@@ -309,19 +316,25 @@ Thank you [@alexforencich](https://github.com/alexforencich/cocotbext-axi) for y
 
 ### AHB Monitor
 
-A basic AHB monitor was also developed, the idea is to ensure that basic protocol assumptions are respected throughout assertions, its constructor arguments are very similar to the previous discussed classes. For now, only two aspects are checked through this monitor, the first one ensure the master does not change its address phase transaction qualifier once a transaction is issued and the slave is not available. The second property checks that an AHB error response coming from the slave is following the 2-cycle response defined in the AMBA spec.
+A basic AHB monitor was also developed, the idea is to ensure that basic protocol assumptions are respected throughout assertions, its constructor arguments are very similar to the previous discussed classes. For now, the monitor checks for basic protocol violations such as :
+
+- Ensure the master/bus decoder does not change its address phase transaction qualifiers (hsel[if app], haddr, htrans, hwrite) while the slave is not available (hready == 0);
+- Ensure the master/bus decoder does not change its data phase transaction qualifier (hwdata) while the slave is not available (hready == 0);
+- Checks that an AHB error response coming from the slave is following the 2-cycle response defined in the AMBA spec.
 
 ```python
-class AHBMonitor:
+class AHBMonitor(Monitor):
     def __init__(
-        self,
-        bus: AHBBus,
-        clock: str,
-        reset: str,
-        name: str = "ahb_monitor",
-        **kwargs,
-    ):
+        self, 
+        bus: AHBBus, 
+        clock: str, 
+        reset: str, 
+        prefix: str = None, 
+        **kwargs: Any
+    ) -> None:
 ```
+
+As the monitor is extended from [Monitor](https://github.com/cocotb/cocotb-bus/blob/master/src/cocotb_bus/monitors/__init__.py#L30) cocotb-bus class, it is possible to pass its object as a callable reference to a [Scoreboard](https://github.com/cocotb/cocotb-bus/blob/master/src/cocotb_bus/scoreboard.py#L18) object and use it to compare transactions. For reference, please check the [`tests/test_ahb_lite_monitor_scoreboard.py`](tests/test_ahb_lite_monitor_scoreboard.py) and see how its implemented.
 
 ### Example
 

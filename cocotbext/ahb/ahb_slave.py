@@ -4,12 +4,13 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 16.10.2023
-# Last Modified Date: 18.12.2023
+# Last Modified Date: 09.06.2024
 
 import cocotb
 import logging
 import random
 import copy
+import datetime
 
 from .ahb_types import AHBTrans, AHBWrite, AHBSize, AHBResp
 from .ahb_bus import AHBBus
@@ -44,7 +45,7 @@ class AHBLiteSlave:
         self._init_bus()
         self.log.info(f"AHB ({name}) slave")
         self.log.info("cocotbext-ahb version %s", __version__)
-        self.log.info("Copyright (c) 2023 Anderson Ignacio da Silva")
+        self.log.info(f"Copyright (c) {datetime.datetime.now().year} Anderson Ignacio da Silva")
         self.log.info("https://github.com/aignacio/cocotbext-ahb")
 
         cocotb.start_soon(self._proc_txn())
