@@ -3,22 +3,23 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 14.06.2024
+# Last Modified Date: 15.06.2024
 
 import cocotb
 import os
 import random
 import math
 import pytest
+import struct
 
 from const import cfg
 from cocotb_test.simulator import run
 from cocotb.triggers import ClockCycles
 from cocotb.clock import Clock
-from cocotbext.ahb import AHBBus, AHBLiteMaster, AHBLiteSlaveRAM, AHBResp, AHBMonitor
+from cocotbext.ahb import AHBBus, AHBLiteMaster, AHBLiteSlaveRAM, AHBMonitor
+from cocotbext.ahb import AHBTxn, AHBTrans, AHBWrite, AHBSize, AHBResp
 from cocotb.regression import TestFactory
-
-recv_txn = []
+from cocotb_bus.scoreboard import Scoreboard
 
 
 def rnd_val(bit: int = 0, zero: bool = True):
@@ -82,12 +83,32 @@ def get_random_txn(mem_size_kib, data_width, N):
                 data = val & 0xFFFFFFFFFFFFFFFF
         expected.append({"resp": resp, "data": hex(data)})
 
-    return address, value, size, expected
+    def _convert_size(value) -> AHBTrans:
+        """Convert byte size into hsize."""
+        for hsize in AHBSize:
+            if (2**hsize.value) == value:
+                return hsize
+
+    txn_list = []
+    for mode in [AHBWrite.READ, AHBWrite.WRITE]:
+        for addr, sz, val, ex in zip(address, size, value, expected):
+            txn = AHBTxn(
+                int(addr),
+                AHBSize(_convert_size(sz)),
+                mode,
+                ex["resp"],
+                int(val),
+                int(ex["data"], 16),
+            )
+
+            txn_list.append(txn)
+            # exp_data = int(ex["data"],16) #struct.pack("I", int(ex["data"],16))
+            # txn_list.append(exp_data)
+
+    return address, value, size, expected, txn_list
 
 
 def txn_recv(txn):
-    # pass
-    recv_txn.append(txn)
     print(txn)
 
 
@@ -106,8 +127,13 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
         ahb_bus_slave, dut.hclk, dut.hresetn, "ahb_monitor", callback=txn_recv
     )
 
-    # Below is only required bc of flake8 - non-used rule
     type(ahb_lite_mon)
+
+    # scoreboard = Scoreboard(dut, fail_immediately=True)
+
+    # expected_output = []
+
+    # scoreboard.add_interface(ahb_lite_mon, expected_output)
 
     ahb_lite_sram = AHBLiteSlaveRAM(
         AHBBus.from_entity(dut),
@@ -125,8 +151,11 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
         AHBBus.from_entity(dut), dut.hclk, dut.hresetn, def_val="Z"
     )
 
-    address, value, size, expected = get_random_txn(mem_size_kib, data_width, N)
+    address, value, size, expected, txn = get_random_txn(mem_size_kib, data_width, N)
 
+    # expected_output.extend(txn)
+
+    # print(f"LEN >>>>> {len(txn)}")
     # Perform the writes and reads
     resp = await ahb_lite_master.write(address, value, size, pip=pip_mode)
     resp = await ahb_lite_master.read(address, size, pip=pip_mode)
@@ -143,29 +172,6 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
             print("Expected")
             print(expect)
             assert real == expect, "DUT != Expected"
-
-    # Prepare data to compare
-    txn = []
-    for hwrite in [1, 0]:
-        for i_addr, i_value, i_size in zip(address, value, size):
-            txn_sent = {}
-            txn_sent["haddr"] = i_addr
-            txn_sent["value"] = i_value
-            txn_sent["size"] = i_size
-            txn_sent["hwrite"] = hwrite
-            txn.append(txn_sent)
-
-    # Compare all sent txns with the monitor
-    print(f"Sent txn {len(txn)} and monitored {len(recv_txn)}")
-    # for index, (real, expect) in enumerate(zip( )):
-    # if real != expect:
-    # print("------ERROR------")
-    # print(f"Txn ID: {index}")
-    # print("DUT")
-    # print(real)
-    # print("Expected")
-    # print(expect)
-    # assert real == expect, "DUT != Expected"
 
 
 if cocotb.SIM_NAME:

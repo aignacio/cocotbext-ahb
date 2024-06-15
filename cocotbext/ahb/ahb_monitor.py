@@ -4,11 +4,12 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 27.10.2023
-# Last Modified Date: 14.06.2024
+# Last Modified Date: 15.06.2024
 import cocotb
 import logging
 import random
 import copy
+import struct
 import datetime
 
 from .ahb_types import AHBTrans, AHBWrite, AHBSize, AHBResp
@@ -28,8 +29,7 @@ class AHBMonitor(Monitor):
     def __init__(
         self, bus: AHBBus, clock: str, reset: str, prefix: str = None, **kwargs: Any
     ) -> None:
-        name = prefix if prefix is not None else bus.entity._name + "_ahb_monitor"
-
+        self.name = prefix if prefix is not None else bus.entity._name + "_ahb_monitor"
         self.clk = clock
         self.rst = reset
         self.bus = bus
@@ -38,7 +38,7 @@ class AHBMonitor(Monitor):
         # the internal bus property as it already exists from AHBBus
         Monitor.__init__(self, **kwargs)
 
-        self.log.info(f"AHB ({name}) Monitor")
+        self.log.info(f"AHB ({self.name}) Monitor")
         self.log.info("cocotbext-ahb version %s", __version__)
         self.log.info(
             f"Copyright (c) {datetime.datetime.now().year} Anderson Ignacio da Silva"
@@ -93,7 +93,9 @@ class AHBMonitor(Monitor):
                 elif self.bus.hready.value == 1:
                     # Check whether the slave response follow the AMBA AHB spec
                     # with 2-cycle delay
-                    if (self.bus.hresp.value != AHBResp.OKAY) and (slave_error_prev == 0):
+                    if (self.bus.hresp.value != AHBResp.OKAY) and (
+                        slave_error_prev == 0
+                    ):
                         raise AssertionError(
                             "AHB PROTOCOL VIOLATION: Slave is not following the 2-cyle error response \
                                     - ARM IHI 0033B.b (ID102715) - Section 5.1.3"
@@ -102,8 +104,19 @@ class AHBMonitor(Monitor):
                     first_txn["response"] = copy.deepcopy(self.bus.hresp.value)
                     first_txn["hrdata"] = copy.deepcopy(self.bus.hrdata.value)
                     first_txn["hwdata"] = copy.deepcopy(self.bus.hwdata.value)
-                    # print(first_txn)
-                    self._recv(first_txn)
+
+                    txn = AHBTxn(
+                        int(first_txn["haddr"]),
+                        AHBSize(first_txn["hsize"]),
+                        AHBWrite(first_txn["hwrite"]),
+                        AHBResp(first_txn["response"]),
+                        int(first_txn["hwdata"]),
+                        int(first_txn["hrdata"]),
+                    )
+
+                    self._recv(txn)
+                    # exp_data = int(first_txn["hrdata"]) # struct.pack("I",int(first_txn['hrdata']))
+                    # self._recv(exp_data)
 
                     # Restart the txn status
                     first_st["phase"] = "none"
@@ -220,3 +233,32 @@ class AHBMonitor(Monitor):
                     raise AssertionError(
                         f"AHB PROTOCOL VIOLATION: Master.{signal} signal should not change before slave.hready == 1"
                     )
+
+
+class AHBTxn:
+    def __init__(
+        self,
+        addr: int = 0x00,
+        size: AHBSize = AHBSize.BYTE,
+        mode: AHBWrite = AHBWrite.READ,
+        resp: AHBResp = AHBResp.OKAY,
+        wdata: int = 0x00,
+        rdata: int = 0x00,
+    ):
+        self.addr = addr
+        self.size = size
+        self.mode = mode
+        self.resp = resp
+        self.wdata = wdata
+        self.rdata = rdata
+
+    def __str__(self):
+        return (
+            f"AHBTxn Details:\n"
+            f"  Address: 0x{self.addr:08X}\n"
+            f"  Size: {2**self.size} bytes (0x{self.size:03X})\n"
+            f"  Mode: {'Write' if self.mode == 1 else 'Read'} (0x{self.mode:01X})\n"
+            f"  Response: {'OKAY' if self.resp == 0 else 'ERROR'} (0x{self.resp:02X})\n"
+            f"  Write Data: 0x{self.wdata:08X}\n"
+            f"  Read Data: 0x{self.rdata:08X}\n"
+        )
