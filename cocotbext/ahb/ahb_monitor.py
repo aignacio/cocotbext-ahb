@@ -254,7 +254,7 @@ class AHBTxn:
 
     def __str__(self):
         return (
-            f"AHBTxn Details:\n"
+            f"AHB Txn Details:\n"
             f"  Address: 0x{self.addr:08X}\n"
             f"  Size: {2**self.size} bytes (0x{self.size:03X})\n"
             f"  Mode: {'Write' if self.mode == 1 else 'Read'} (0x{self.mode:01X})\n"
@@ -262,3 +262,17 @@ class AHBTxn:
             f"  Write Data: 0x{self.wdata:08X}\n"
             f"  Read Data: 0x{self.rdata:08X}\n"
         )
+
+    def __eq__(self, other):
+        # We have to override the default python comparison method for this class
+        # because the Scoreboard class will compare the txns
+        if isinstance(other, AHBTxn):
+            return (
+                self.addr == other.addr
+                and self.size == other.size
+                and self.mode == other.mode
+                and self.resp == other.resp
+                and self.wdata == other.wdata
+                and self.rdata == other.rdata
+            )
+        return False

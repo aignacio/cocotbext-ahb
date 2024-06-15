@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 09.06.2024
+# Last Modified Date: 15.06.2024
 
 import cocotb
 import logging
@@ -43,7 +43,9 @@ class AHBLiteMaster:
         self._init_bus()
         self.log.info(f"AHB ({name}) master")
         self.log.info("cocotbext-ahb version %s", __version__)
-        self.log.info(f"Copyright (c) {datetime.datetime.now().year} Anderson Ignacio da Silva")
+        self.log.info(
+            f"Copyright (c) {datetime.datetime.now().year} Anderson Ignacio da Silva"
+        )
         self.log.info("https://github.com/aignacio/cocotbext-ahb")
 
     def _init_bus(self) -> None:
@@ -269,6 +271,8 @@ class AHBLiteMaster:
         if size is None:
             size = [self.bus._data_width // 8 for _ in range(len(address))]
         else:
+            if not isinstance(size, list):
+                size = [size]
             for sz in size:
                 AHBLiteMaster._check_size(sz, len(self.bus.hwdata) // 8)
 
@@ -276,8 +280,8 @@ class AHBLiteMaster:
 
         if not isinstance(value, list):
             value = [value]
-        if not isinstance(size, list):
-            size = [size]
+        # if not isinstance(size, list):
+        # size = [size]
 
         # First check if the input sizes are correct
         if len(address) != len(value):
@@ -330,12 +334,12 @@ class AHBLiteMaster:
         if size is None:
             size = [self.bus._data_width // 8 for _ in range(len(address))]
         else:
+            # Convert all inputs into lists, if not already
+            if not isinstance(size, list):
+                size = [size]
+
             for sz in size:
                 AHBLiteMaster._check_size(sz, len(self.bus.hwdata) // 8)
-
-        # Convert all inputs into lists, if not already
-        if not isinstance(size, list):
-            size = [size]
 
         # First check if the input sizes are correct
         if len(address) != len(size):

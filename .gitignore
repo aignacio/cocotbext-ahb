@@ -134,3 +134,4 @@ output
 run_dir/
 .nox/*
 .DS_Store
+*.txt

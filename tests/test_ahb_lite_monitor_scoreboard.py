@@ -89,33 +89,43 @@ def get_random_txn(mem_size_kib, data_width, N):
             if (2**hsize.value) == value:
                 return hsize
 
-    txn_list = []
+    write_txn = []
+    read_txn = []
+
     for mode in [AHBWrite.READ, AHBWrite.WRITE]:
-        for addr, sz, val, ex in zip(address, size, value, expected):
-            txn = AHBTxn(
-                int(addr),
-                AHBSize(_convert_size(sz)),
-                mode,
-                ex["resp"],
-                int(val),
-                int(ex["data"], 16),
-            )
+        if mode == AHBWrite.WRITE:
+            for addr, sz, val, ex in zip(address, size, value, expected):
+                txn = AHBTxn(
+                    int(addr),
+                    AHBSize(_convert_size(sz)),
+                    mode,
+                    ex["resp"],
+                    int(val),
+                    0,
+                )
 
-            txn_list.append(txn)
-            # exp_data = int(ex["data"],16) #struct.pack("I", int(ex["data"],16))
-            # txn_list.append(exp_data)
+                write_txn.append(txn)
+        else:
+            for addr, sz, val, ex in zip(address, size, value, expected):
+                txn = AHBTxn(
+                    int(addr),
+                    AHBSize(_convert_size(sz)),
+                    mode,
+                    ex["resp"],
+                    0,
+                    int(ex["data"], 16),
+                )
 
-    return address, value, size, expected, txn_list
+                read_txn.append(txn)
 
-
-def txn_recv(txn):
-    print(txn)
+    return address, value, size, expected, write_txn, read_txn
 
 
 @cocotb.test()
 async def run_test(dut, bp_fn=None, pip_mode=False):
     mem_size_kib = 16
-    N = 10
+    N = 100
+    expected_output = []
 
     ahb_bus_slave = AHBBus.from_entity(dut)
 
@@ -124,16 +134,12 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
     await setup_dut(dut, cfg.RST_CYCLES)
 
     ahb_lite_mon = AHBMonitor(
-        ahb_bus_slave, dut.hclk, dut.hresetn, "ahb_monitor", callback=txn_recv
+        ahb_bus_slave, dut.hclk, dut.hresetn, "ahb_monitor"  # , callback=txn_recv
     )
 
-    type(ahb_lite_mon)
+    scoreboard = Scoreboard(dut, fail_immediately=True)
 
-    # scoreboard = Scoreboard(dut, fail_immediately=True)
-
-    # expected_output = []
-
-    # scoreboard.add_interface(ahb_lite_mon, expected_output)
+    scoreboard.add_interface(ahb_lite_mon, expected_output)
 
     ahb_lite_sram = AHBLiteSlaveRAM(
         AHBBus.from_entity(dut),
@@ -151,27 +157,22 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
         AHBBus.from_entity(dut), dut.hclk, dut.hresetn, def_val="Z"
     )
 
-    address, value, size, expected, txn = get_random_txn(mem_size_kib, data_width, N)
+    # Generate random transactions and its results to compare in the scoreboard
+    address, value, size, expected, wr_txn, rd_txn = get_random_txn(
+        mem_size_kib, data_width, N
+    )
 
-    # expected_output.extend(txn)
+    for mode in [AHBWrite.WRITE, AHBWrite.READ]:
+        if mode == AHBWrite.WRITE:
+            for addr, val, sz, tx in zip(address, value, size, wr_txn):
+                expected_output.append(tx)
+                await ahb_lite_master.write(addr, val, sz, pip=pip_mode)
+        else:
+            for addr, val, sz, tx in zip(address, value, size, rd_txn):
+                expected_output.append(tx)
+                await ahb_lite_master.read(addr, sz, pip=pip_mode)
 
-    # print(f"LEN >>>>> {len(txn)}")
-    # Perform the writes and reads
-    resp = await ahb_lite_master.write(address, value, size, pip=pip_mode)
-    resp = await ahb_lite_master.read(address, size, pip=pip_mode)
-
-    type(resp)
-
-    # Compare all txns
-    for index, (real, expect) in enumerate(zip(resp, expected)):
-        if real != expect:
-            print("------ERROR------")
-            print(f"Txn ID: {index}")
-            print("DUT")
-            print(real)
-            print("Expected")
-            print(expect)
-            assert real == expect, "DUT != Expected"
+    raise scoreboard.result
 
 
 if cocotb.SIM_NAME:
@@ -186,7 +187,7 @@ if cocotb.SIM_NAME:
 @pytest.mark.parametrize("data_width", [{"DATA_WIDTH": "32"}, {"DATA_WIDTH": "64"}])
 def test_ahb_lite_sram_monitor_scoreboard(data_width):
     """
-    Test AHB lite SRAM to check monitor txns
+    Test AHB lite SRAM to check monitor txns, using a scoreboard to compare both
 
     Test ID: 8
     """
