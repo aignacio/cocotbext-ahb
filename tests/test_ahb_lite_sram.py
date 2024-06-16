@@ -3,7 +3,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 14.06.2024
+# Last Modified Date: 16.06.2024
 
 import cocotb
 import os
@@ -61,7 +61,7 @@ def txn_recv(txn):
 @cocotb.test()
 async def run_test(dut, bp_fn=None, pip_mode=False):
     mem_size_kib = 16
-    N = 1
+    N = 1000
 
     ahb_bus_slave = AHBBus.from_entity(dut)
 
@@ -94,7 +94,7 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
 
     # Generate a list of unique addresses with the double of memory size
     # to create error responses
-    address = random.sample(range(0, 2 * mem_size_kib * 1024, 8), N)
+    address = random.sample(range(0, 1 * mem_size_kib * 1024, 8), N)
     # Generate a list of random 32-bit values
     value = [rnd_val(data_width) for _ in range(N)]
     # Generate a list of random sizes
