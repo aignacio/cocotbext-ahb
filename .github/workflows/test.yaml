@@ -14,8 +14,7 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-22.04
-    needs: lint_job  # Depends on lint job from lint.yaml
-    id: regression_job
+    needs: lint
 
     strategy:
       matrix:
@@ -26,13 +25,13 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install Icarus and its requirements
         run: |
           sudo apt update
           sudo apt-get install build-essential libboost-dev iverilog verilator
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
