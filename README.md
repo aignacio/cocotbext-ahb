@@ -1,7 +1,4 @@
-[![Lint](https://github.com/aignacio/cocotbext-ahb/actions/workflows/lint.yaml/badge.svg)](https://github.com/aignacio/cocotbext-ahb/actions/workflows/lint.yaml) 
-[![Regression Tests](https://github.com/aignacio/cocotbext-ahb/actions/workflows/test.yaml/badge.svg)](https://github.com/aignacio/cocotbext-ahb/actions/workflows/test.yaml) [![codecov](https://codecov.io/gh/aignacio/cocotbext-ahb/graph/badge.svg?token=RHYCK6SSCC)](https://codecov.io/gh/aignacio/cocotbext-ahb) 
-[![Downloads](https://static.pepy.tech/badge/cocotbext-ahb)](https://pepy.tech/project/cocotbext-ahb)
-[![PyPI version](https://badge.fury.io/py/cocotbext-ahb.svg)](https://badge.fury.io/py/cocotbext-ahb)
+[![CI](https://github.com/aignacio/cocotbext-ahb/actions/workflows/run.yaml/badge.svg)](https://github.com/aignacio/cocotbext-ahb/actions/workflows/run.yaml) [![codecov](https://codecov.io/gh/aignacio/cocotbext-ahb/graph/badge.svg?token=RHYCK6SSCC)](https://codecov.io/gh/aignacio/cocotbext-ahb) [![Downloads](https://static.pepy.tech/badge/cocotbext-ahb)](https://pepy.tech/project/cocotbext-ahb) [![PyPI version](https://badge.fury.io/py/cocotbext-ahb.svg)](https://badge.fury.io/py/cocotbext-ahb)
 
 # Cocotb AHB bus driver
 
