@@ -1,0 +1,2 @@
+[build-system]
+requires = ["setuptools", "wheel", "cocotb>=1.8.0", "cocotb-bus>=0.2.1", "cocotb-test>=0.2.4"]
