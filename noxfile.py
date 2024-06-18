@@ -4,12 +4,12 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 14.06.2024
+# Last Modified Date: 18.06.2024
 
 import nox
 
 
-@nox.session(python=["3.6", "3.7", "3.8", "3.9", "3.10"], reuse_venv=True)
+@nox.session(python=["3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12"], reuse_venv=True)
 def run(session):
     session.env["DUT"] = "ahb_template"
     session.env["SIM"] = "icarus"
@@ -23,9 +23,9 @@ def run(session):
         "pytest-sugar",
         "pytest-cov",
         "pytest-split",
-        "cocotb-bus == 0.2.1",
-        "cocotb-test == 0.2.4",
-        "cocotb >= 1.8.0",
+        "cocotb-bus==0.2.1",
+        "cocotb-test==0.2.4",
+        "cocotb>=1.8.0"
     )
     session.install("-e", ".")
     session.run(
@@ -41,7 +41,7 @@ def run(session):
     )
 
 
-@nox.session(python=["3.9", "3.10"])
+@nox.session(python=["3.9", "3.10", "3.11", "3.12"], reuse_venv=True)
 def lint(session):
     session.install("flake8")
     session.run("flake8")

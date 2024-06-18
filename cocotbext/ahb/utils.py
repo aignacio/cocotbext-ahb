@@ -29,7 +29,7 @@ def hexdump_line(data, offset, row_size=16):
     for ch in data[0:row_size]:
         h += f"{ch:02x} "
         c += chr(ch) if 32 < ch < 127 else "."
-    return f"{offset:08x}: {h:{row_size*3}} {c}"
+    return f"{offset:08x}: {h:{row_size * 3}} {c}"
 
 
 def hexdump(data, start=0, length=None, row_size=16, prefix="", offset=0):

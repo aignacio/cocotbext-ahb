@@ -4,10 +4,10 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 15.06.2024
+# Last Modified Date: 18.06.2024
 
-import cocotb
 import logging
+import cocotb
 import copy
 import datetime
 
@@ -186,7 +186,7 @@ class AHBLiteMaster:
                             f"AHB {op} txn:\n"
                             f"\tID = {index}\n"
                             f"\tADDR = 0x{txn_addr:x}\n"
-                            f"\tDATA = 0x{value[index+1]:x}\n"
+                            f"\tDATA = 0x{value[index + 1]:x}\n"
                             f"\tSIZE = {txn_size} bytes"
                         )
             self.bus.hwdata.value = txn_data
