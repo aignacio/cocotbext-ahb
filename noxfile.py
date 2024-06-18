@@ -12,9 +12,9 @@ import nox
 @nox.session(python=["3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12"], reuse_venv=True)
 def run(session):
     session.env["DUT"] = "ahb_template"
-    # session.env["SIM"] = "icarus"
+    session.env["SIM"] = "icarus"
     # session.env["COCOTB_LOG_LEVEL"] = "debug"
-    session.env['SIM'] = "verilator"
+    # session.env['SIM'] = "verilator"
     session.env["TIMEPREC"] = "1ps"
     session.env["TIMEUNIT"] = "1ns"
     session.install(
