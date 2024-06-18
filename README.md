@@ -1,4 +1,4 @@
-[![CI](https://github.com/aignacio/cocotbext-ahb/actions/workflows/run.yaml/badge.svg)](https://github.com/aignacio/cocotbext-ahb/actions/workflows/run.yaml) [![codecov](https://codecov.io/gh/aignacio/cocotbext-ahb/graph/badge.svg?token=RHYCK6SSCC)](https://codecov.io/gh/aignacio/cocotbext-ahb) [![Downloads](https://static.pepy.tech/badge/cocotbext-ahb)](https://pepy.tech/project/cocotbext-ahb) [![PyPI version](https://badge.fury.io/py/cocotbext-ahb.svg)](https://badge.fury.io/py/cocotbext-ahb)
+[![Lint > Tests > Publish](https://github.com/aignacio/cocotbext-ahb/actions/workflows/run.yaml/badge.svg)](https://github.com/aignacio/cocotbext-ahb/actions/workflows/run.yaml) [![codecov](https://codecov.io/gh/aignacio/cocotbext-ahb/graph/badge.svg?token=RHYCK6SSCC)](https://codecov.io/gh/aignacio/cocotbext-ahb) [![Downloads](https://static.pepy.tech/badge/cocotbext-ahb)](https://pepy.tech/project/cocotbext-ahb) [![PyPI version](https://badge.fury.io/py/cocotbext-ahb.svg)](https://badge.fury.io/py/cocotbext-ahb)
 
 # Cocotb AHB bus driver
 
