@@ -11,8 +11,9 @@ on:
       - 'stable/**'
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-22.04
+    id: lint_job
 
     strategy:
       matrix:

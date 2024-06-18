@@ -12,8 +12,10 @@ on:
       - 'stable/**'
 
 jobs:
-  build:
+  tests:
     runs-on: ubuntu-22.04
+    needs: lint_job  # Depends on lint job from lint.yaml
+    id: regression_job
 
     strategy:
       matrix:
@@ -25,27 +27,10 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
-      #- name: Install Verilator requirements
-        #run: |
-          #sudo apt update -y
-          #sudo apt-get install git help2man perl python3 make
-          #sudo apt-get install g++  # Alternatively, clang
-          #sudo apt-get install libfl-dev  # Ubuntu only (ignore if gives error)
-          #sudo apt-get install zlib1g zlib1g-dev  # Ubuntu only (ignore if gives error)
-      #- name: Set up Verilator
-        #run: |
-          #git clone https://github.com/verilator/verilator
-          #cd verilator
-          #git checkout stable
-          #autoconf
-          #./configure
-          #make
-          #sudo make install
-        #shell: bash
       - name: Install Icarus and its requirements
         run: |
           sudo apt update
-          sudo apt-get install build-essential libboost-dev iverilog
+          sudo apt-get install build-essential libboost-dev iverilog verilator
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
