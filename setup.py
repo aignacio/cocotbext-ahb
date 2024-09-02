@@ -28,7 +28,7 @@ setup(
     },
     include_package_data=False,
     python_requires=">=3.6",
-    install_requires=["cocotb>=1.8.0", "cocotb-bus>=0.2.1", "cocotb-test>=0.2.4"],
+    install_requires=["cocotb>=1.8.0", "cocotb-bus>=0.2.1"],
     extras_require={
         "test": [
             "pytest",
