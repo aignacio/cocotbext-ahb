@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 18.06.2024
+# Last Modified Date: 02.09.2024
 
 import nox
 
@@ -29,12 +29,12 @@ def run(session):
     )
     session.install("-e", ".")
     session.run(
-        "py.test",
+        "pytest",
         "--cov=cocotbext",
         "--cov-branch",
         "--cov-report=xml",
-        # "-rf",
-        "-rP",
+        "-rf",
+        # "-rP",
         "-n",
         "auto",
         *session.posargs
