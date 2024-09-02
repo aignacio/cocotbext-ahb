@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 18.06.2024
+# Last Modified Date: 02.09.2024
 
 import logging
 import cocotb
@@ -167,28 +167,38 @@ class AHBLiteMaster:
         if sync:
             await RisingEdge(self.clk)
 
+        if pip is not True:
+            # If pip is True, create a list with "BUBBLE" between each number
+            id_ahb = []
+            for i in range(len(address)):
+                id_ahb.append(i)  # Append the number
+                id_ahb.append("BUBBLE")  # Append "BUBBLE"
+        else:
+            # If pip is False, just create a simple list of sequential numbers
+            id_ahb = list(range(len(address)))
+
         while index < len(address):
-            txn_addr, txn_data, txn_size, txn_mode, txn_trans = (
+            txn_addr, txn_data, txn_size, txn_mode, txn_trans, txn_id = (
                 address[index],
                 value[index],
                 size[index],
                 mode[index],
                 trans[index],
+                id_ahb[index],
             )
             if index == len(address) - 1:
                 self._reset_bus()
             else:
                 self._addr_phase(txn_addr, txn_size, txn_mode, txn_trans)
-                if txn_addr != self.def_val:
-                    if not isinstance(txn_addr, LogicArray):
-                        op = "write" if txn_mode == 1 else "read"
-                        self.log.info(
-                            f"AHB {op} txn:\n"
-                            f"\tID = {index}\n"
-                            f"\tADDR = 0x{txn_addr:x}\n"
-                            f"\tDATA = 0x{value[index + 1]:x}\n"
-                            f"\tSIZE = {txn_size} bytes"
-                        )
+                if not isinstance(txn_addr, LogicArray):
+                    op = "write" if txn_mode == 1 else "read"
+                    self.log.info(
+                        f"AHB {op} txn:\n"
+                        f"\tID = {txn_id}\n"
+                        f"\tADDR = 0x{txn_addr:x}\n"
+                        f"\tDATA = 0x{value[index + 1]:x}\n"
+                        f"\tSIZE = {txn_size} bytes"
+                    )
             self.bus.hwdata.value = txn_data
             if self.bus.hready_in_exist:
                 self.bus.hready_in.value = 1
@@ -217,6 +227,7 @@ class AHBLiteMaster:
                 await RisingEdge(self.clk)
 
             index += 1
+
             # Wait till a response is available from the slave
             while self.bus.hready.value != 1:
                 if self.bus.hresp == AHBResp.ERROR:
