@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 27.10.2023
-# Last Modified Date: 15.06.2024
+# Last Modified Date: 07.09.2024
 import cocotb
 import logging
 import random
@@ -85,7 +85,7 @@ class AHBMonitor(Monitor):
                             pass
                         else:
                             raise AssertionError(
-                                "AHB PROTOCOL VIOLATION: Master.hwdata signal should not change before slave.hready == 1"
+                                f"[{self.bus.name}/{self.name}] AHB PROTOCOL VIOLATION: Master.hwdata signal should not change before slave.hready == 1"
                             )
 
                 # Previous cycle we started a txn and slave was ready, and now it is still ready
@@ -97,7 +97,7 @@ class AHBMonitor(Monitor):
                         slave_error_prev == 0
                     ):
                         raise AssertionError(
-                            "AHB PROTOCOL VIOLATION: Slave is not following the 2-cyle error response \
+                            f"[{self.bus.name}/{self.name}] AHB PROTOCOL VIOLATION: Slave is not following the 2-cyle error response \
                                     - ARM IHI 0033B.b (ID102715) - Section 5.1.3"
                         )
 
@@ -231,7 +231,7 @@ class AHBMonitor(Monitor):
                     pass
                 else:
                     raise AssertionError(
-                        f"AHB PROTOCOL VIOLATION: Master.{signal} signal should not change before slave.hready == 1"
+                        f"[{self.bus.name}/{self.name}] AHB PROTOCOL VIOLATION: Master.{signal} signal should not change before slave.hready == 1"
                     )
 
 
