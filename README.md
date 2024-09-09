@@ -279,6 +279,7 @@ class AHBLiteSlave:
         def_val: Union[int, str] = "Z",
         bp: Generator[int, None, None] = None,
         name: str = "ahb_lite",
+        reset_act_low: bool = True,
         **kwargs,
     ):
 ```

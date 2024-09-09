@@ -32,11 +32,13 @@ class AHBLiteSlave:
         def_val: Union[int, str] = "Z",
         bp: Generator[int, None, None] = None,
         name: str = "ahb_lite",
+        reset_act_low: bool = True,
         **kwargs,
     ):
         self.bus = bus
         self.clk = clock
         self.rst = reset
+        self.rst_act_low = reset_act_low
         self.def_val = def_val
         self.bp = bp
         self.log = logging.getLogger(
@@ -105,8 +107,12 @@ class AHBLiteSlave:
                 ready = True
 
             if self.rst.value.is_resolvable:
-                if self.rst.value == 0:  # Active 0
-                    ready = True
+                if self.rst_act_low:
+                    if self.rst.value == 0:  # Active 0
+                        ready = True
+                else:
+                    if self.rst.value == 1:  # Active 1
+                        ready = True
 
             if ready:
                 self.bus.hready.value = 1
