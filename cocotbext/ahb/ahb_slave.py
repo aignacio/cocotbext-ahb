@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 16.10.2023
-# Last Modified Date: 09.06.2024
+# Last Modified Date: 09.09.2024
 
 import cocotb
 import logging
@@ -45,7 +45,9 @@ class AHBLiteSlave:
         self._init_bus()
         self.log.info(f"AHB ({name}) slave")
         self.log.info("cocotbext-ahb version %s", __version__)
-        self.log.info(f"Copyright (c) {datetime.datetime.now().year} Anderson Ignacio da Silva")
+        self.log.info(
+            f"Copyright (c) {datetime.datetime.now().year} Anderson Ignacio da Silva"
+        )
         self.log.info("https://github.com/aignacio/cocotbext-ahb")
 
         cocotb.start_soon(self._proc_txn())
@@ -88,9 +90,23 @@ class AHBLiteSlave:
             self.bus.hresp.value = AHBResp.OKAY
 
             if self.bp is not None:
-                ready = next(self.bp)
+                if self.bus.hsel_exist and self.bus.hsel.value.is_resolvable:
+                    if self.bus.hsel.value == 0:
+                        ready = True
+                    else:
+                        ready = next(self.bp)
+                else:
+                    ready = next(self.bp)
+
+                if rd_start is False and wr_start is False:
+                    ready = True  # slave cannot bp on address phase
+
             else:
                 ready = True
+
+            if self.rst.value.is_resolvable:
+                if self.rst.value == 0:  # Active 0
+                    ready = True
 
             if ready:
                 self.bus.hready.value = 1
