@@ -78,14 +78,20 @@ class AHBLiteSlave:
             if self.rst.value.is_resolvable:
                 if self.rst_act_low:
                     if self.rst.value == 0:  # Active 0
+                        self.log.warn("Slave AHB reset issued")
                         self._init_bus()
                 else:
                     if self.rst.value == 1:  # Active 1
+                        self.log.warn("Slave AHB reset issued")
                         self._init_bus()
 
             # Wait for a txn
             await RisingEdge(self.clk)
 
+            if self.bus.hready_in_exist:
+                cur_hready_in = copy.deepcopy(self.bus.hready_in.value)
+            else:
+                cur_hready_in = 1
             cur_hready = copy.deepcopy(self.bus.hready.value)
             cur_hresp = copy.deepcopy(self.bus.hresp.value)
 
@@ -103,11 +109,11 @@ class AHBLiteSlave:
                 self.bus.hresp.value = AHBResp.ERROR
                 error = False
             else:
-                if rd_start and cur_hready:
+                if rd_start and cur_hready and cur_hready_in:
                     rd_start = False
                     self.bus.hrdata.value = 0
 
-                if wr_start and cur_hready:
+                if wr_start and cur_hready and cur_hready_in:
                     wr_start = False
                     if txn_type == AHBWrite.WRITE:
                         wr = self._wr(txn_addr, txn_size, self.bus.hwdata.value)
@@ -115,7 +121,7 @@ class AHBLiteSlave:
                         self.bus.hresp.value = AHBResp.OKAY
 
             # Check for new txn
-            if (cur_hready == 1) and self._check_inputs() and self._check_valid_txn():
+            if cur_hready and self._check_inputs() and self._check_valid_txn():
                 txn_addr = self.bus.haddr.value
                 txn_size = AHBSize(self.bus.hsize.value)
                 txn_type = AHBWrite(self.bus.hwrite.value)
