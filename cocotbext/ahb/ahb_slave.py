@@ -29,7 +29,6 @@ class AHBLiteSlave:
         bus: AHBBus,
         clock: str,
         reset: str,
-        def_val: Union[int, str] = "Z",
         bp: Generator[int, None, None] = None,
         name: str = "ahb_lite",
         reset_act_low: bool = True,
@@ -39,7 +38,6 @@ class AHBLiteSlave:
         self.clk = clock
         self.rst = reset
         self.rst_act_low = reset_act_low
-        self.def_val = def_val
         self.bp = bp
         self.log = logging.getLogger(
             f"cocotb.{name}.{bus._name}." f"{bus._entity._name}"
@@ -56,14 +54,9 @@ class AHBLiteSlave:
 
     def _init_bus(self) -> None:
         """Initialize the bus with default value."""
-        for signal in self.bus._signals:
-            if signal in ["hready", "hresp", "hrdata"]:
-                sig = getattr(self.bus, signal)
-                try:
-                    default_value = self._get_def(len(sig))
-                    sig.setimmediatevalue(default_value)
-                except AttributeError:
-                    pass
+        self.bus.hready.setimmediatevalue(1)
+        self.bus.hresp.setimmediatevalue(AHBResp.OKAY)
+        self.bus.hrdata.setimmediatevalue(0)
 
     def _get_def(self, width: int = 1) -> BinaryValue:
         """Return a handle obj with the default value"""
@@ -79,7 +72,8 @@ class AHBLiteSlave:
         txn_size = AHBSize.WORD
         txn_type = AHBWrite.READ
 
-        self.bus.hrdata.value = self._get_def(len(self.bus.hrdata))
+        self.bus.hrdata.value = 0
+
         while True:
             # Wait for a txn
             await RisingEdge(self.clk)
@@ -88,7 +82,7 @@ class AHBLiteSlave:
             cur_hresp = copy.deepcopy(self.bus.hresp.value)
 
             # Default values in case there is no txn
-            self.bus.hready.value = 1  # self._get_def(1)
+            self.bus.hready.value = 1
             self.bus.hresp.value = AHBResp.OKAY
 
             if self.bp is not None:
@@ -129,7 +123,7 @@ class AHBLiteSlave:
             else:
                 if rd_start and cur_hready:
                     rd_start = False
-                    self.bus.hrdata.value = self._get_def(len(self.bus.hrdata))
+                    self.bus.hrdata.value = 0
 
                 if wr_start and cur_hready:
                     wr_start = False
@@ -242,13 +236,12 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
         bus: AHBBus,
         clock: str,
         reset: str,
-        def_val: Union[int, str] = "Z",
         bp: Generator[int, None, None] = None,
         name: str = "ahb_lite_ram",
         mem_size: int = 1024,
         **kwargs,
     ):
-        super().__init__(bus, clock, reset, def_val, bp, name, **kwargs)
+        super().__init__(bus, clock, reset, bp, name, **kwargs)
         self.memory = Memory(size=mem_size)
 
     def _chk_rd(self, addr: int, size: AHBSize) -> bool:
@@ -405,9 +398,8 @@ class AHBSlave(AHBLiteSlave):
         bus: AHBBus,
         clock: str,
         reset: str,
-        def_val: Union[int, str] = "Z",
         bp: Generator[int, None, None] = None,
         name: str = "ahb_slave",
         **kwargs,
     ):
-        super().__init__(bus, clock, reset, def_val, bp, name, **kwargs)
+        super().__init__(bus, clock, reset, bp, name, **kwargs)

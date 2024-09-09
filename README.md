@@ -276,7 +276,6 @@ class AHBLiteSlave:
         bus: AHBBus,
         clock: str,
         reset: str,
-        def_val: Union[int, str] = "Z",
         bp: Generator[int, None, None] = None,
         name: str = "ahb_lite",
         reset_act_low: bool = True,
@@ -304,7 +303,6 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
         bus: AHBBus,
         clock: str,
         reset: str,
-        def_val: Union[int, str] = "Z",
         bp: Generator[int, None, None] = None,
         name: str = "ahb_lite_ram",
         mem_size: int = 1024,
@@ -380,7 +378,6 @@ async def run_test(dut):
         AHBBus.from_prefix(dut, "master"),
         dut.hclk,
         dut.hresetn,
-        def_val=0,
         bp=bp_fn,
         mem_size=mem_size_kib * 1024,
     )

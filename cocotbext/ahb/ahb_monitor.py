@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 27.10.2023
-# Last Modified Date: 07.09.2024
+# Last Modified Date: 09.09.2024
 import cocotb
 import logging
 import random
@@ -152,7 +152,14 @@ class AHBMonitor(Monitor):
             if first_st["phase"] == "addr":
                 self._check_signals(first_txn)
 
-                if self.bus.hready.value == 1:
+                if self.bus.hready.value == 0:
+                    raise AssertionError(
+                        f"[{self.bus.name}/{self.name}] AHB PROTOCOL VIOLATION:"
+                        "A slave cannot request that the address phase is extended"
+                        "and therefore all slaves must be capable of sampling the address during this time"
+                        " - ARM IHI 0033B.b (ID102715) - Section 1.3"
+                    )
+                else:
                     first_st["phase"] = "data"
 
     def _check_inputs(self) -> bool:

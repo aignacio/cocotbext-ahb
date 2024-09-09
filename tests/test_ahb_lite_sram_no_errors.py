@@ -3,7 +3,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 29.11.2023
+# Last Modified Date: 09.09.2024
 
 import cocotb
 import os
@@ -66,7 +66,6 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
         AHBBus.from_entity(dut),
         dut.hclk,
         dut.hresetn,
-        def_val=0,
         bp=bp_fn,
         mem_size=mem_size_kib * 1024,
     )
