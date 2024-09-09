@@ -88,7 +88,7 @@ class AHBLiteSlave:
             cur_hresp = copy.deepcopy(self.bus.hresp.value)
 
             # Default values in case there is no txn
-            self.bus.hready.value = self._get_def(1)
+            self.bus.hready.value = 1  # self._get_def(1)
             self.bus.hresp.value = AHBResp.OKAY
 
             if self.bp is not None:
