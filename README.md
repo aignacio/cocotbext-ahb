@@ -290,6 +290,8 @@ In case of an AHB error response, the Slave inserts a wait state (HREADY == LOW 
 * First: HREADY == LOW / HRESP == ERROR
 * Second: HREADY == HIGH / HRESP == ERROR
 
+*Note*: Following ARM's spec, the slave needs to assert HREADY (or HREADYOUT) high during reset, it is assumed that the `reset` argument is **active-low**.
+
 #### AHB Lite Slave RAM 
 
 The AHB Lite Slave RAM is a basic memory slave that can receive reads and write like a normal memory-mapped device. The only difference between the normal slave vs this one is the fact that as part of its constructor, a new argument **mem_size** is listed. This argument defines a memory size in bytes for the AHB slave. The only limitation for now, is the fact that all memory addresses have to be aligned to the data bus width, i.e for 32-bit slaves, address[1:0] == 2'b00.
