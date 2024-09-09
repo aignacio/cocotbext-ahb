@@ -75,6 +75,14 @@ class AHBLiteSlave:
         self.bus.hrdata.value = 0
 
         while True:
+            if self.rst.value.is_resolvable:
+                if self.rst_act_low:
+                    if self.rst.value == 0:  # Active 0
+                        self._init_bus()
+                else:
+                    if self.rst.value == 1:  # Active 1
+                        self._init_bus()
+
             # Wait for a txn
             await RisingEdge(self.clk)
 
@@ -84,32 +92,6 @@ class AHBLiteSlave:
             # Default values in case there is no txn
             self.bus.hready.value = 1
             self.bus.hresp.value = AHBResp.OKAY
-
-            if self.bp is not None:
-                if self.bus.hsel_exist and self.bus.hsel.value.is_resolvable:
-                    if self.bus.hsel.value == 0:
-                        ready = True
-                    else:
-                        ready = next(self.bp)
-                else:
-                    ready = next(self.bp)
-
-                if rd_start is False and wr_start is False:
-                    ready = True  # slave cannot bp on address phase
-
-            else:
-                ready = True
-
-            if self.rst.value.is_resolvable:
-                if self.rst_act_low:
-                    if self.rst.value == 0:  # Active 0
-                        ready = True
-                else:
-                    if self.rst.value == 1:  # Active 1
-                        ready = True
-
-            if ready:
-                self.bus.hready.value = 1
 
             if error and (cur_hresp == AHBResp.OKAY):  # First cycle of error response
                 self.bus.hready.value = 0
@@ -157,6 +139,20 @@ class AHBLiteSlave:
                         rd_start = True
                         self.bus.hrdata.value = self._rd(txn_addr, txn_size)
                         self.bus.hresp.value = AHBResp.OKAY
+
+            if error is False:
+                if self.bp is not None:
+                    if rd_start is True or wr_start is True:
+                        ready = next(self.bp)
+                    else:
+                        ready = True  # slave cannot bp on address phase
+                else:
+                    ready = True
+
+                if ready:
+                    self.bus.hready.value = 1
+                else:
+                    self.bus.hready.value = 0
 
     @staticmethod
     def _check_size(size: int, data_bus_width: int) -> None:

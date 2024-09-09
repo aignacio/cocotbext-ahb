@@ -319,6 +319,7 @@ A basic AHB monitor was also developed, the idea is to ensure that basic protoco
 - Ensure the master/bus decoder does not change its address phase transaction qualifiers (hsel[if app], haddr, htrans, hwrite) while the slave is not available (hready == 0);
 - Ensure the master/bus decoder does not change its data phase transaction qualifier (hwdata) while the slave is not available (hready == 0);
 - Checks that an AHB error response coming from the slave is following the 2-cycle response defined in the AMBA spec.
+- Ensure slave cannot back-pressure during address phase.
 
 ```python
 class AHBMonitor(Monitor):
