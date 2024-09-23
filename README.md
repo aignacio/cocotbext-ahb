@@ -6,6 +6,11 @@
 * [Introduction](#intro)
 * [Installation](#install)
 * [Classes and usage example](#classes)
+   - [AHB Bus](#ahb_bus)
+   - [AHB Master](#ahb_master)
+   - [AHB Slave](#ahb_slave)
+   - [AHB monitor](#ahb_monitor)
+* [Issue with first txn](#issue_w_first)
 * [License](#lic)
 
 ## <a name="intro"></a> Introduction
@@ -60,7 +65,7 @@ This AHB extension is composed by master, slaves and a single monitor. Thus, the
 * **AHB Lite Slave** - Support any type of AHB transaction but burst with back-pressure option and configurable default value 
 * **AHB Monitor** - Basic monitor to check AHB transactions, extends from [Monitor](https://github.com/cocotb/cocotb-bus/blob/master/src/cocotb_bus/monitors/__init__.py#L30) cocotb-bus class 
 
-### AHB Bus
+### <a name="ahb_bus"></a> AHB Bus
 
 All the different master/slaves and also the monitor requires an **AHBBus** object to be passed to their constructors. This AHBBus object will map each of the AHB I/F pins the dut, some IOs are mandatory but others are optional. In order to create an AHBBus object, here are the two ways.
 
@@ -169,7 +174,7 @@ AHBBus.from_prefix(
 
 * hburst
 
-### AHB Master
+### <a name="ahb_master"></a> AHB Master
 
 Both AHB Master [WIP] and AHB Lite Master classes have the same constructor arguments. Within the arguments, it is required to pass the AHB Bus object, the clock and reset DUT pins. As optional args, a timeout value in clock cycles (per AHB txn), the default value of the master driven IOs and the name of the object.
 ```python
@@ -265,7 +270,7 @@ A third method provides flexibility in case the user wants to perform read or wr
 
 *Note*: address, value, mode and size have to match their length if provided.
 
-### AHB Slave
+### <a name="ahb_slave"></a> AHB Slave
 
 Both AHB Slave [WIP] and AHB Lite Slave classes have the same constructor arguments. Within the arguments, it is required to pass the AHB Bus object, the clock and reset DUT pins. As optional arg, the default value of the slave driven IOs, a generator function to force back-pressure and the name of the object.
 
@@ -312,7 +317,7 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
 
 Thank you [@alexforencich](https://github.com/alexforencich/cocotbext-axi) for your work on the memory classes that were leveraged in this project.
 
-### AHB Monitor
+### <a name="ahb_monitor"></a> AHB Monitor
 
 A basic AHB monitor was also developed, the idea is to ensure that basic protocol assumptions are respected throughout assertions, its constructor arguments are very similar to the previous discussed classes. For now, the monitor checks for basic protocol violations such as :
 
@@ -401,6 +406,22 @@ async def run_test(dut):
 ### Example waveforms
 
 ![example_ext](docs_utils/txn_example.png)
+
+
+### <a name="issue_w_first"></a> Issue with first txn
+
+Some designs might use asynchronous reset thus typically, the reset toggles before the
+clock is on in the test run. Considering this case, if an AHB txn is issued at
+the very first clock edge, it is observed an issue where the address phase of the
+first AHB transaction does not get driven correctly (similar to the image
+below).
+
+![issue_with_first_txn](docs_utils/ahb_issue_first_txn.png)
+
+In order to workaround this issue, it is suggested to:
+
+1. Wait at least one clock cycle before issuing the first AHB txn;
+2. Use [sync=True](https://github.com/aignacio/cocotbext-ahb/blob/2264912e2c51b91aeb9c578c582828afd848face/cocotbext/ahb/ahb_master.py#L276) option just for the first AHB txn
 
 ## <a name="lic"></a> License
 cocotbext-ahb is licensed under the permissive MIT license.Please refer to the [LICENSE](LICENSE) file for details.
