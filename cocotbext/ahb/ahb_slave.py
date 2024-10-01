@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 16.10.2023
-# Last Modified Date: 09.09.2024
+# Last Modified Date: 01.10.2024
 
 import cocotb
 import logging
@@ -18,7 +18,6 @@ from .version import __version__
 
 from cocotb.triggers import RisingEdge
 from cocotb.types import LogicArray
-from cocotb.binary import BinaryValue
 from typing import Optional, Union, Generator, List
 from .memory import Memory
 
@@ -58,7 +57,7 @@ class AHBLiteSlave:
         self.bus.hresp.setimmediatevalue(AHBResp.OKAY)
         self.bus.hrdata.setimmediatevalue(0)
 
-    def _get_def(self, width: int = 1) -> BinaryValue:
+    def _get_def(self, width: int = 1) -> LogicArray:
         """Return a handle obj with the default value"""
         return LogicArray([self.def_val for _ in range(width)])
 
@@ -273,7 +272,7 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
         data = int.from_bytes(data, byteorder="little")
         return data
 
-    def _wr(self, addr: int, size: AHBSize, value: BinaryValue) -> int:
+    def _wr(self, addr: int, size: AHBSize, value: LogicArray) -> int:
         if size == AHBSize.BYTE:
             # Mask the data to a single byte
             data = value.integer & 0xFF

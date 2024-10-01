@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 27.10.2023
-# Last Modified Date: 09.09.2024
+# Last Modified Date: 01.10.2024
 import cocotb
 import logging
 import random
@@ -19,7 +19,6 @@ from .version import __version__
 from cocotb.triggers import RisingEdge, FallingEdge
 from cocotb.handle import SimHandleBase
 from cocotb.types import LogicArray
-from cocotb.binary import BinaryValue
 from cocotb_bus.monitors import Monitor
 from typing import Optional, Union, Generator, List, Any
 from .memory import Memory

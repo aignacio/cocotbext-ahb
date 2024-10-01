@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 03.09.2024
+# Last Modified Date: 01.10.2024
 
 import logging
 import cocotb
@@ -18,7 +18,6 @@ from .version import __version__
 from cocotb.triggers import RisingEdge
 from typing import Optional, Sequence, Union, List
 from cocotb.types import LogicArray
-from cocotb.binary import BinaryValue
 
 
 class AHBLiteMaster:
@@ -68,7 +67,7 @@ class AHBLiteMaster:
                 except AttributeError:
                     pass
 
-    def _get_def(self, width: int = 1) -> BinaryValue:
+    def _get_def(self, width: int = 1) -> LogicArray:
         """Return a handle obj with the default value"""
         return LogicArray([self.def_val for _ in range(width)])
 
