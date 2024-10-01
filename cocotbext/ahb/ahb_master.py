@@ -4,8 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 01.10.2024
-
+# Last Modified Date: 02.10.2024
 import logging
 import cocotb
 import copy
@@ -152,6 +151,7 @@ class AHBLiteMaster:
         mode: Sequence[AHBWrite],
         trans: Sequence[AHBTrans],
         pip: bool = False,
+        verbose: bool = False,
         sync: bool = False,
     ) -> Sequence[dict]:
         """Drives the AHB transaction into the bus."""
@@ -192,13 +192,14 @@ class AHBLiteMaster:
                 if txn_id != "BUBBLE":
                     if not isinstance(txn_addr, LogicArray):
                         op = "write" if txn_mode == 1 else "read"
-                        self.log.info(
-                            f"AHB {op} txn:\n"
-                            f"\tID = {txn_id}\n"
-                            f"\tADDR = 0x{txn_addr:x}\n"
-                            f"\tDATA = 0x{value[index + 1]:x}\n"
-                            f"\tSIZE = {txn_size} bytes"
-                        )
+                        if verbose is True:
+                            self.log.info(
+                                f"AHB {op} txn:\n"
+                                f"\tID = {txn_id}\n"
+                                f"\tADDR = 0x{txn_addr:x}\n"
+                                f"\tDATA = 0x{value[index + 1]:x}\n"
+                                f"\tSIZE = {txn_size} bytes"
+                            )
             self.bus.hwdata.value = txn_data
             if self.bus.hready_in_exist:
                 self.bus.hready_in.value = 1
@@ -272,6 +273,7 @@ class AHBLiteMaster:
         value: Union[int, Sequence[int]],
         size: Optional[Union[int, Sequence[int]]] = None,
         pip: Optional[bool] = False,
+        verbose: Optional[bool] = False,
         sync: Optional[bool] = False,
     ) -> Sequence[dict]:
         """Write data in the AHB bus."""
@@ -327,7 +329,7 @@ class AHBLiteMaster:
         t_trans = self._create_vector(t_trans, width, "address_ph", pip)
 
         return await self._send_txn(
-            t_address, t_value, t_size, t_mode, t_trans, pip, sync
+            t_address, t_value, t_size, t_mode, t_trans, pip, verbose, sync
         )
 
     async def read(
@@ -335,6 +337,7 @@ class AHBLiteMaster:
         address: Union[int, Sequence[int]],
         size: Optional[Union[int, Sequence[int]]] = None,
         pip: Optional[bool] = False,
+        verbose: Optional[bool] = False,
         sync: Optional[bool] = False,
     ) -> Sequence[dict]:
         """Read data from the AHB bus."""
@@ -379,7 +382,7 @@ class AHBLiteMaster:
         t_trans = self._create_vector(t_trans, width, "address_ph", pip)
 
         return await self._send_txn(
-            t_address, t_value, t_size, t_mode, t_trans, pip, sync
+            t_address, t_value, t_size, t_mode, t_trans, pip, verbose, sync
         )
 
     async def custom(
@@ -389,6 +392,7 @@ class AHBLiteMaster:
         mode: Union[int, Sequence[int]],
         size: Optional[Union[int, Sequence[int]]] = None,
         pip: Optional[bool] = True,
+        verbose: Optional[bool] = False,
         sync: Optional[bool] = False,
     ) -> Sequence[dict]:
         """Back-to-Back operation"""
@@ -440,7 +444,7 @@ class AHBLiteMaster:
         t_trans = self._create_vector(t_trans, width, "address_ph", pip)
 
         return await self._send_txn(
-            t_address, t_value, t_size, t_mode, t_trans, pip, sync
+            t_address, t_value, t_size, t_mode, t_trans, pip, verbose, sync
         )
 
 

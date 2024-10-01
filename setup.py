@@ -37,7 +37,8 @@ setup(
     },
     keywords=["soc", "vip", "hdl", "verilog", "systemverilog", "ahb"],
     classifiers=[
-        "Development Status :: 1 - Planning",
+        "Development Status :: 3 - Alpha",
+        "Framework :: cocotb"
         "Intended Audience :: Developers",
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
