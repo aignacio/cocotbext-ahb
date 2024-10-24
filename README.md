@@ -123,7 +123,8 @@ class AHBBus(Bus):
 * hready_in *(Note a)*
 
 Notes:
-a. This signal is driven high during the txn start but it does not follow the **hreadyout** loopback from the slave when the slave is not available, if the loopback is expected, suggestion is to connect the `hready_in` directly to the `hreadyout`
+
+a. This signal is driven high during the txn start but it does not follow the **hreadyout** loopback from the slave when the slave is not available, if the loopback is expected, suggestion is to connect the `hready_in` directly to the `hreadyout`.
 
 2. AHB Slave signals 
 
@@ -274,7 +275,7 @@ A third method provides flexibility in case the user wants to perform read or wr
 
 **Arguments**
 * address - Single or a list of integer addresses to be written to or read from
-* value - Single or a list of integer addresses to be written to or read from
+* value - Single or a list of integer values to be written, ignored for reads
 * mode - Single or a list of operation types - 0 (Read) or 1 (Write)
 * Optional[size] - Integer number of bytes to be written/read (for instance, in 32-bit bus, 1, 2 or 4 bytes), default is the max bus size
 * Optional[pip] - Define if the address/data phase will overlap in a pipeline manner or not, default non-pipelined 
