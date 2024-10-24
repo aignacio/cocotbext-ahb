@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 02.10.2024
+# Last Modified Date: 24.10.2024
 import logging
 import cocotb
 import copy
@@ -92,6 +92,24 @@ class AHBLiteMaster:
             )
         elif size <= 0 or (size & (size - 1)) != 0:
             raise ValueError(f"Error -> {size} - Size must" f"be a positive power of 2")
+
+    def _fmt_amba(self, address: Sequence[int], size: Sequence[int], value: Sequence[int]) -> Sequence[int]:
+        """Format the write data to follow AMBA by shifting / masking data."""
+        new_val = []
+        offset = (self.bus.data_width // 8) - 1
+        for addr, sz, val in zip(address, size, value):
+            if sz != (self.bus.data_width // 8):
+                data = 0
+                if sz == 4:
+                    data = (val & 0xFFFFFFFF) << ((addr & offset) * 8)
+                elif sz == 2:
+                    data = (val & 0xFFFF) << ((addr & offset) * 8)
+                elif sz == 1:
+                    data = (val & 0xFF) << ((addr & offset) * 8)
+                new_val.append(data)
+            else:
+                new_val.append(val)
+        return new_val
 
     def _addr_phase(self, addr: int, size: int, mode: AHBWrite, trans: AHBTrans):
         """Drive the AHB signals of the address phase."""
@@ -198,7 +216,7 @@ class AHBLiteMaster:
                                 f"\tID = {txn_id}\n"
                                 f"\tADDR = 0x{txn_addr:x}\n"
                                 f"\tDATA = 0x{value[index + 1]:x}\n"
-                                f"\tSIZE = {txn_size} bytes"
+                                f"\tSIZE = {txn_size} byte[s]"
                             )
             self.bus.hwdata.value = txn_data
             if self.bus.hready_in_exist:
@@ -275,6 +293,7 @@ class AHBLiteMaster:
         pip: Optional[bool] = False,
         verbose: Optional[bool] = False,
         sync: Optional[bool] = False,
+        format_amba: Optional[bool] = False,
     ) -> Sequence[dict]:
         """Write data in the AHB bus."""
 
@@ -293,6 +312,10 @@ class AHBLiteMaster:
 
         if not isinstance(value, list):
             value = [value]
+
+        if format_amba is True:
+            value = self._fmt_amba(address, size, value)
+
         # if not isinstance(size, list):
         # size = [size]
 

@@ -4,11 +4,12 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 09.09.2024
+# Last Modified Date: 24.10.2024
 
 import cocotb
 import os
 import random
+import pytest
 
 from const import cfg
 from cocotb_test.simulator import run
@@ -75,19 +76,58 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
     resp = await ahb_lite_master.write(address, value, pip=pip_mode)
     resp = await ahb_lite_master.read(address, size, pip=pip_mode)
     resp = await ahb_lite_master.custom(address, value, mode, size, pip_mode)
+
     type(resp)
+
+    # ----------------------
+    #  AMBA format test
+    # ----------------------
+    if ahb_lite_master.bus.data_width == 32:
+        # Byte access
+        address = [0x00, 0x01, 0x02, 0x3]
+        value = [rnd_val(32) for _ in range(4)]
+        size = [1 for _ in range(4)]
+        resp = await ahb_lite_master.write(address, value, size, format_amba=True, verbose=True)
+
+        # Half-word access
+        address = [0x00, 0x02]
+        value = [rnd_val(32) for _ in range(2)]
+        size = [2 for _ in range(2)]
+        resp = await ahb_lite_master.write(address, value, size, format_amba=True, verbose=True)
+
+        # Word access
+        address = [0x00]
+        value = [rnd_val(32)]
+        size = [4]
+        resp = await ahb_lite_master.write(address, value, size, format_amba=True, verbose=True)
+    else:
+        # Byte access
+        address = [0x00, 0x01, 0x02, 0x3, 0x4, 0x5, 0x6, 0x7]
+        value = [rnd_val(32) for _ in range(8)]
+        size = [1 for _ in range(8)]
+        resp = await ahb_lite_master.write(address, value, size, format_amba=True, verbose=True)
+
+        # Half-word access
+        address = [0x00, 0x02, 0x4, 0x6]
+        value = [rnd_val(32) for _ in range(4)]
+        size = [2 for _ in range(4)]
+        resp = await ahb_lite_master.write(address, value, size, format_amba=True, verbose=True)
+
+        # Word access
+        address = [0x00, 0x04]
+        rd = rnd_val(32)
+        value = [rd, rd]
+        size = [4 for _ in range(2)]
+        resp = await ahb_lite_master.write(address, value, size, format_amba=True, verbose=True)
 
 
 if cocotb.SIM_NAME:
     factory = TestFactory(run_test)
-    factory.add_option(
-        "bp_fn", [slave_back_pressure_generator(), slave_no_back_pressure_generator()]
-    )
-    factory.add_option("pip_mode", [False, True])
     factory.generate_tests()
 
 
-def test_ahb_lite_log():
+@pytest.mark.parametrize("data_width", [{"DATA_WIDTH": "32"}, {"DATA_WIDTH": "64"}])
+def test_ahb_lite_log(data_width):
     """
     Test AHB lite log messages
 
@@ -95,7 +135,8 @@ def test_ahb_lite_log():
     """
     module = os.path.splitext(os.path.basename(__file__))[0]
     SIM_BUILD = os.path.join(
-        cfg.TESTS_DIR, f"../run_dir/sim_build_{cfg.SIMULATOR}_{module}"
+        cfg.TESTS_DIR,
+        f"../run_dir/sim_build_{cfg.SIMULATOR}_{module}_data_width_{data_width['DATA_WIDTH']}_bits",
     )
     extra_args_sim = cfg.EXTRA_ARGS
 
@@ -105,6 +146,7 @@ def test_ahb_lite_log():
         toplevel=cfg.TOPLEVEL,
         module=module,
         sim_build=SIM_BUILD,
+        parameters=data_width,
         extra_args=extra_args_sim,
         extra_env=cfg.EXTRA_ENV,
         timescale=cfg.TIMESCALE,

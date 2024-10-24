@@ -120,7 +120,10 @@ class AHBBus(Bus):
 * hexcl
 * hmaster
 * hsel 
-* hready_in
+* hready_in *(Note a)*
+
+Notes:
+a. This signal is driven high during the txn start but it does not follow the **hreadyout** loopback from the slave when the slave is not available, if the loopback is expected, suggestion is to connect the `hready_in` directly to the `hreadyout`
 
 2. AHB Slave signals 
 
@@ -201,11 +204,14 @@ For writes, the arguments are listed here:
 
 ```python
     async def write(
-        self,
+        self,        
         address: Union[int, Sequence[int]],
         value: Union[int, Sequence[int]],
         size: Optional[Union[int, Sequence[int]]] = None,
         pip: Optional[bool] = False,
+        verbose: Optional[bool] = False,
+        sync: Optional[bool] = False,
+        format_amba: Optional[bool] = False,
     ) -> Sequence[dict]:
 ```
 
@@ -214,6 +220,9 @@ For writes, the arguments are listed here:
 * value - Single or a list of integer values to be written
 * Optional[size] - Integer number of bytes to be written (for instance, in 32-bit bus, 1, 2 or 4 bytes), default is the max bus size
 * Optional[pip] - Define if the address/data phase will overlap in a pipeline manner or not, default non-pipelined 
+* Optional[verbose] - Print a msg on every txn
+* Optional[sync] - Drive signals on next clk edge
+* Optional[format_amba] - Enforce AMBA data masking/shifting according to spec (Table 6-1 Active byte lanes for a 32-bit little-endian data bus - ARM IHI 0033B.b)
 
 **Return**
 * Sequence[dict] - Once all transactions are dispatched and their responses are received, the function returns a list of dict with [AHBResp](cocotbext/ahb/ahb_types.py) responses along with the data.
@@ -230,6 +239,8 @@ For reads, the arguments are listed here:
         address: Union[int, Sequence[int]],
         size: Optional[Union[int, Sequence[int]]] = None,
         pip: Optional[bool] = False,
+        verbose: Optional[bool] = False,
+        sync: Optional[bool] = False,
     ) -> Sequence[dict]:
 ```
 
@@ -237,6 +248,8 @@ For reads, the arguments are listed here:
 * address - Single or a list of integer addresses to be read from
 * Optional[size] - Integer number of bytes to be read (for instance, in 32-bit bus, 1, 2 or 4 bytes), default is the max bus size
 * Optional[pip] - Define if the address/data phase will overlap in a pipeline manner or not, default non-pipelined 
+* Optional[sync] - Drive signals on next clk edge
+* Optional[verbose] - Print a msg on every txn
 
 **Return**
 * Sequence[dict] - Once all transactions are dispatched and their responses are received, the function returns a list of dict with [AHBResp](cocotbext/ahb/ahb_types.py) responses along with the data.
@@ -254,7 +267,8 @@ A third method provides flexibility in case the user wants to perform read or wr
         value: Union[int, Sequence[int]],
         mode: Union[int, Sequence[int]],
         size: Optional[Union[int, Sequence[int]]] = None,
-        pip: Optional[bool]
+        pip: Optional[bool],
+        verbose: Optional[bool] = False,
     ) -> Sequence[dict]:
 ```
 
@@ -264,6 +278,8 @@ A third method provides flexibility in case the user wants to perform read or wr
 * mode - Single or a list of operation types - 0 (Read) or 1 (Write)
 * Optional[size] - Integer number of bytes to be written/read (for instance, in 32-bit bus, 1, 2 or 4 bytes), default is the max bus size
 * Optional[pip] - Define if the address/data phase will overlap in a pipeline manner or not, default non-pipelined 
+* Optional[sync] - Drive signals on next clk edge
+* Optional[verbose] - Print a msg on every txn
 
 **Return**
 * Sequence[dict] - Once all transactions are dispatched and their responses are received, the function returns a list of dict with [AHBResp](cocotbext/ahb/ahb_types.py) responses along with the data.
