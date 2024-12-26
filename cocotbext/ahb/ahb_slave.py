@@ -256,16 +256,12 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
         return True
 
     def _get_addr_aligned(self, addr: int) -> int:
-        if self.bus._data_width == 32:
-            if self.bus._addr_width == 32:
-                return addr & 0xFFFF_FFFC
-            elif self.bus._addr_width == 64:
-                return addr & 0xFFFF_FFFF_FFFF_FFFC
-        elif self.bus._data_width == 64:
-            if self.bus._addr_width == 32:
-                return addr & 0xFFFF_FFF8
-            elif self.bus._addr_width == 64:
-                return addr & 0xFFFF_FFFF_FFFF_FFF8
+        def calc_addr_mask(addr_width: int, data_width: int) -> int:
+            import math
+            clog2 = lambda x: math.ceil(math.log2(x))
+            return ((1 << addr_width) - 1) - ((1 << clog2(data_width / 8)) - 1)
+        
+        return calc_addr_mask(self.bus._addr_width, self.bus._data_width) & addr
 
     def _rd(self, addr: int, size: AHBSize) -> int:
         data = self.memory.read(addr, 2**size)
