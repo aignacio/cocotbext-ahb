@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 16.10.2023
-# Last Modified Date: 01.10.2024
+# Last Modified Date: 26.12.2024
 
 import cocotb
 import logging
@@ -258,9 +258,10 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
     def _get_addr_aligned(self, addr: int) -> int:
         def calc_addr_mask(addr_width: int, data_width: int) -> int:
             import math
+
             clog2 = lambda x: math.ceil(math.log2(x))
             return ((1 << addr_width) - 1) - ((1 << clog2(data_width / 8)) - 1)
-        
+
         return calc_addr_mask(self.bus._addr_width, self.bus._data_width) & addr
 
     def _rd(self, addr: int, size: AHBSize) -> int:
