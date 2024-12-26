@@ -12,7 +12,7 @@ with codecs.open(os.path.join(here, "README.md"), encoding="utf-8") as fh:
 
 # Setting up
 setup(
-    name="cocotbext-ahb",
+    name="cocotbext_ahb",
     packages=find_namespace_packages(include=["cocotbext.*"]),
     version=__version__,
     author="aignacio (Anderson Ignacio)",
