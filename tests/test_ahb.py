@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 09.09.2024
+# Last Modified Date: 27.12.2024
 
 import cocotb
 import os
@@ -86,7 +86,7 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
     txn_type = [pick_random_value([1, 0]) for _ in range(N)]
 
     resp = await ahb_master.custom(
-        address, value, txn_type, size, pip_mode
+        address, value, txn_type, size, pip_mode, format_amba=True
     )
 
 

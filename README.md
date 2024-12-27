@@ -270,6 +270,7 @@ A third method provides flexibility in case the user wants to perform read or wr
         size: Optional[Union[int, Sequence[int]]] = None,
         pip: Optional[bool],
         verbose: Optional[bool] = False,
+        format_amba: Optional[bool] = False,
     ) -> Sequence[dict]:
 ```
 
@@ -281,6 +282,7 @@ A third method provides flexibility in case the user wants to perform read or wr
 * Optional[pip] - Define if the address/data phase will overlap in a pipeline manner or not, default non-pipelined 
 * Optional[sync] - Drive signals on next clk edge
 * Optional[verbose] - Print a msg on every txn
+* Optional[format_amba] - Enforce AMBA data masking/shifting according to spec (Table 6-1 Active byte lanes for a 32-bit little-endian data bus - ARM IHI 0033B.b)
 
 **Return**
 * Sequence[dict] - Once all transactions are dispatched and their responses are received, the function returns a list of dict with [AHBResp](cocotbext/ahb/ahb_types.py) responses along with the data.

@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 24.10.2024
+# Last Modified Date: 27.12.2024
 import logging
 import cocotb
 import copy
@@ -93,7 +93,9 @@ class AHBLiteMaster:
         elif size <= 0 or (size & (size - 1)) != 0:
             raise ValueError(f"Error -> {size} - Size must" f"be a positive power of 2")
 
-    def _fmt_amba(self, address: Sequence[int], size: Sequence[int], value: Sequence[int]) -> Sequence[int]:
+    def _fmt_amba(
+        self, address: Sequence[int], size: Sequence[int], value: Sequence[int]
+    ) -> Sequence[int]:
         """Format the write data to follow AMBA by shifting / masking data."""
         new_val = []
         offset = (self.bus.data_width // 8) - 1
@@ -106,7 +108,7 @@ class AHBLiteMaster:
                     data = (val & 0xFFFF) << ((addr & offset) * 8)
                 elif sz == 1:
                     data = (val & 0xFF) << ((addr & offset) * 8)
-                new_val.append(data)
+                new_val.append(data & (2**self.bus.data_width - 1))
             else:
                 new_val.append(val)
         return new_val
@@ -313,9 +315,6 @@ class AHBLiteMaster:
         if not isinstance(value, list):
             value = [value]
 
-        if format_amba is True:
-            value = self._fmt_amba(address, size, value)
-
         # if not isinstance(size, list):
         # size = [size]
 
@@ -331,6 +330,9 @@ class AHBLiteMaster:
                 f"Address length ({len(address)}) is"
                 f"different from size length ({len(size)})"
             )
+
+        if format_amba is True:
+            value = self._fmt_amba(address, size, value)
 
         # Need to copy data as we'll have to shift address/value
         t_address = copy.deepcopy(address)
@@ -417,6 +419,7 @@ class AHBLiteMaster:
         pip: Optional[bool] = True,
         verbose: Optional[bool] = False,
         sync: Optional[bool] = False,
+        format_amba: Optional[bool] = False,
     ) -> Sequence[dict]:
         """Back-to-Back operation"""
 
@@ -446,6 +449,9 @@ class AHBLiteMaster:
             value = [value]
         if not isinstance(mode, list):
             mode = [mode]
+
+        if format_amba is True:
+            value = self._fmt_amba(address, size, value)
 
         # Need to copy data as we'll have to shift address/size
         t_address = copy.deepcopy(address)
