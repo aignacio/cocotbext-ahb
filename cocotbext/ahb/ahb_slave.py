@@ -267,128 +267,77 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
         return calc_addr_mask(self.bus._addr_width, self.bus._data_width) & addr
 
     def _rd(self, addr: int, size: AHBSize) -> int:
-        data = self.memory.read(addr, 2**size)
-        data = int.from_bytes(data, byteorder="little")
+        rd_bytes_num = 1 << size
+        rd_bits_num = rd_bytes_num * 8
+
+        # Check that HSIZE is less than or equal to the data with
+        if self.bus._data_width < rd_bits_num:
+            raise AssertionError("HSIZE is larger than the data width")
+
+        # Check that the address is aligned to HSIZE
+        if (addr % rd_bytes_num) != 0:
+            raise AssertionError("All transfers must be aligned to the address boundary equal to the size of the transfer (HSIZE)")
+
+        # Get the addr aligned to data bus width
+        addr_aligned = self._get_addr_aligned(addr)
+
+        # Get data bus width in bytes
+        bus_bytes_width = int(self.bus._data_width / 8)
+
+        # Get the data from memory
+        mem_data = self.memory.read(addr_aligned, bus_bytes_width)
+        mem_data = int.from_bytes(mem_data, byteorder="little")
+
+        # Get mask by hsize
+        data_mask = (1 << rd_bits_num) - 1
+
+        # Get the offset in the transaction
+        byte_offset = addr & (bus_bytes_width - 1)
+
+        # Get data shifted by offset
+        data = (data_mask << (byte_offset * 8)) & mem_data
         return data
 
     def _wr(self, addr: int, size: AHBSize, value: LogicArray) -> int:
-        if size == AHBSize.BYTE:
-            # Mask the data to a single byte
-            data = value.integer & 0xFF
+        wr_bytes_num = 1 << size
+        wr_bits_num = wr_bytes_num * 8
 
-            # Get the byte offset
-            if self.bus._data_width == 32:
-                byte_sel = addr & 0x3
-            elif self.bus._data_width == 64:
-                byte_sel = addr & 0x7
+        # Check that HSIZE is less than or equal to the data with
+        if self.bus._data_width < wr_bits_num:
+            raise AssertionError("HSIZE is larger than the data width")
 
-            # Get the (d)word aligned addr
-            addr_aligned = self._get_addr_aligned(addr)
+        # Check that the address is aligned to HSIZE
+        if (addr % wr_bytes_num) != 0:
+            raise AssertionError("All transfers must be aligned to the address boundary equal to the size of the transfer (HSIZE)")
 
-            # Get the (d)word data from the memory
-            if self.bus._data_width == 32:
-                mem_data = self.memory.read(addr_aligned, 4)
-            elif self.bus._data_width == 64:
-                mem_data = self.memory.read(addr_aligned, 8)
+        # Get the transfer size aligned addr
+        addr_aligned = self._get_addr_aligned(addr)
 
-            mem_data = int.from_bytes(mem_data, byteorder="little")
+        # Get data width in bytes
+        bus_bytes_width = int(self.bus._data_width / 8)
 
-            # Zero the N-th byte
-            mem_data = ~(0xFF << (byte_sel * 8)) & mem_data
+        # Get the offset in the transaction
+        byte_offset = addr & (bus_bytes_width - 1)
 
-            # OR with the new value
-            mem_data = (data << (byte_sel * 8)) | mem_data
+        # Get mask by hsize
+        data_mask = (1 << wr_bits_num) - 1
 
-            # Convert into 32/64-bit int byte array
-            if self.bus._data_width == 32:
-                ba_data = mem_data.to_bytes(4, byteorder="little")
-            elif self.bus._data_width == 64:
-                ba_data = mem_data.to_bytes(8, byteorder="little")
+        data = (value.integer >> (byte_offset * 8)) & data_mask
 
-            # Write the data back to the memory
-            self.memory.write(addr_aligned, ba_data)
-        elif size == AHBSize.HWORD:
-            # Mask the data to a half-word
-            data = value.integer & 0xFFFF
+        # Get the (d)word data from memory
+        mem_data = self.memory.read(addr_aligned, bus_bytes_width)
+        mem_data = int.from_bytes(mem_data, byteorder="little")
 
-            # Get the half-word offset
-            if self.bus._data_width == 32:
-                hword_sel = addr & 0x3
-            elif self.bus._data_width == 64:
-                hword_sel = addr & 0x7
+        # Zero out the section that is being written to
+        mem_data = ~(data_mask << (byte_offset * 8)) & mem_data
+        # put the data there
+        mem_data = (data << (byte_offset * 8)) | mem_data
 
-            if (hword_sel & 0x1) != 0x0:
-                raise AssertionError("Half-word write addr LSB has to be 0x0")
+        # Convert into data width bit long integer byte array
+        ba_data = mem_data.to_bytes(bus_bytes_width, byteorder="little")
 
-            # Get the (d)word aligned addr
-            addr_aligned = self._get_addr_aligned(addr)
-
-            # Get the (d)word data from the memory
-            if self.bus._data_width == 32:
-                mem_data = self.memory.read(addr_aligned, 4)
-            elif self.bus._data_width == 64:
-                mem_data = self.memory.read(addr_aligned, 8)
-
-            mem_data = int.from_bytes(mem_data, byteorder="little")
-
-            # Zero the N-th h-word
-            mem_data = ~(0xFFFF << (hword_sel * 8)) & mem_data
-
-            # OR with the new value
-            mem_data = (data << (hword_sel * 8)) | mem_data
-
-            # Convert into 32-bit int byte array
-            if self.bus._data_width == 32:
-                ba_data = mem_data.to_bytes(4, byteorder="little")
-            elif self.bus._data_width == 64:
-                ba_data = mem_data.to_bytes(8, byteorder="little")
-
-            # Write the data back to the memory
-            self.memory.write(addr_aligned, ba_data)
-        elif size == AHBSize.WORD:
-            if self.bus._data_width == 32:
-                lsbs = addr & 0x3
-                if lsbs != 0x0:
-                    raise AssertionError("Word write addr LSB needs to be 0x0")
-                ba_data = value.integer.to_bytes(4, byteorder="little")
-                self.memory.write(addr, ba_data)
-
-            elif self.bus._data_width == 64:
-                # Mask the data to a half-word
-                data = value.integer & 0xFFFF_FFFF
-
-                # Get the word offset
-                word_sel = addr & 0x7
-
-                if (word_sel & 0x3) != 0x0:
-                    raise AssertionError("Word write addr LSBs have to be 0x0")
-
-                # Get the (d)word aligned addr
-                addr_aligned = self._get_addr_aligned(addr)
-
-                # Get the (d)word data from the memory
-                mem_data = self.memory.read(addr_aligned, 8)
-
-                mem_data = int.from_bytes(mem_data, byteorder="little")
-
-                # Zero the N-th word
-                mem_data = ~(0xFFFF_FFFF << (word_sel * 8)) & mem_data
-
-                # OR with the new value
-                mem_data = (data << (word_sel * 8)) | mem_data
-
-                # Convert into 32-bit int byte array
-                ba_data = mem_data.to_bytes(8, byteorder="little")
-
-                # Write the data back to the memory
-                self.memory.write(addr_aligned, ba_data)
-        elif size == AHBSize.DWORD:
-            lsbs = addr & 0x7
-            if lsbs != 0x0:
-                raise AssertionError("Dword write addr LSB needs to be 0x0")
-            ba_data = value.integer.to_bytes(8, byteorder="little")
-            self.memory.write(addr, ba_data)
-
+        # Write the data back to memory
+        self.memory.write(addr_aligned, ba_data)
         return 0
 
 

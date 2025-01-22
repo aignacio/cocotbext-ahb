@@ -98,7 +98,7 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
         resp_wr = await ahb_lite_master.write(addr, data, size, pip=pip_mode)
         print(resp_wr)
         expect = sum(
-            (data[i // byte_mode] & mask[index]) << (8 * i)
+            (data[i // byte_mode] & mask[index] << (8 * i))
             for i in range(0, n_bytes, byte_mode)
         )
         resp_rd = await ahb_lite_master.read(address_dw_aligned, pip=pip_mode)
