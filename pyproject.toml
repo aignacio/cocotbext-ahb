@@ -1,2 +1,7 @@
 [build-system]
 requires = ["setuptools", "wheel", "cocotb>=1.8.0", "cocotb-bus>=0.2.1"]
+
+[project]
+name = "cocotbext_ahb"
+version = "0.5.0"
+description = "AHB extension for Cocotb"

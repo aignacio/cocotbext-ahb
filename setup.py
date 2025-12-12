@@ -5,7 +5,7 @@ from setuptools import find_namespace_packages, find_packages, setup
 
 from cocotbext.ahb.version import __version__
 
-DESCRIPTION = "CocotbExt AHB Bus VIP"
+DESCRIPTION = "AHB extension for Cocotb"
 LONG_DESCRIPTION = "AHB VIP for Bus interface"
 
 here = os.path.abspath(os.path.dirname(__file__))
