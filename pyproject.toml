@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cocotbext-ahb"
-version = "0.5.0"
+version = "0.5.1"
 description = "CocotbExt AHB Bus VIP"
 readme = "README.md"
 requires-python = ">=3.6"
@@ -27,6 +27,7 @@ classifiers = [
 dependencies = [
     "cocotb>=1.8.0",
     "cocotb-bus",
+    "packaging",
 ]
 
 [project.optional-dependencies]
