@@ -7,14 +7,16 @@
 # Last Modified Date: 01.10.2024
 import copy
 import datetime
+from importlib.metadata import version
 from typing import Any
 
 from cocotb.triggers import FallingEdge
 from cocotb_bus.monitors import Monitor
 
+__version__ = version("cocotbext-ahb")
+
 from .ahb_bus import AHBBus
 from .ahb_types import AHBResp, AHBSize, AHBTrans, AHBWrite
-from .version import __version__
 
 
 class AHBMonitor(Monitor):

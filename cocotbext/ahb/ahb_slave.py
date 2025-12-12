@@ -9,11 +9,13 @@
 import copy
 import datetime
 import logging
-import random
-from typing import Generator, List, Optional, Union
+from importlib.metadata import version
+from typing import Generator
 
 import cocotb
 from packaging.version import Version
+
+__version__ = version("cocotbext-ahb")
 
 if Version(cocotb.__version__) >= Version("2.0.0"):
     from cocotb.handle import Immediate
@@ -24,7 +26,6 @@ from cocotb.types import LogicArray
 from .ahb_bus import AHBBus
 from .ahb_types import AHBResp, AHBSize, AHBTrans, AHBWrite
 from .memory import Memory
-from .version import __version__
 
 
 class AHBLiteSlave:
