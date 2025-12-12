@@ -6,16 +6,16 @@
 # Date              : 08.10.2023
 # Last Modified Date: 27.12.2024
 
-import cocotb
 import os
 import random
 
-from const import cfg
-from cocotb_test.simulator import run
-from cocotb.triggers import ClockCycles
+import cocotb
 from cocotb.clock import Clock
+from cocotb.triggers import ClockCycles
+from cocotb_tools.runner import get_runner
+from const import cfg
+
 from cocotbext.ahb import AHBBus, AHBMaster, AHBSlave
-from cocotb.regression import TestFactory
 
 
 def rnd_val(bit: int = 0, zero: bool = True):
@@ -50,18 +50,18 @@ async def setup_dut(dut, cycles):
 
 
 @cocotb.test()
-async def run_test(dut, bp_fn=None, pip_mode=False):
+@cocotb.parametrize(
+    bp_fn=[slave_back_pressure_generator(), slave_no_back_pressure_generator()],
+    pip_mode=[False, True],
+)
+async def run_test(dut, bp_fn, pip_mode):
     N = 1000
 
     await setup_dut(dut, cfg.RST_CYCLES)
 
-    ahb_master = AHBMaster(
-        AHBBus.from_entity(dut), dut.hclk, dut.hresetn, def_val="Z"
-    )
+    ahb_master = AHBMaster(AHBBus.from_entity(dut), dut.hclk, dut.hresetn, def_val="Z")
 
-    ahb_slave = AHBSlave(
-        AHBBus.from_entity(dut), dut.hclk, dut.hresetn, bp=bp_fn
-    )
+    ahb_slave = AHBSlave(AHBBus.from_entity(dut), dut.hclk, dut.hresetn, bp=bp_fn)
 
     type(ahb_slave)
 
@@ -90,15 +90,6 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
     )
 
 
-if cocotb.SIM_NAME:
-    factory = TestFactory(run_test)
-    factory.add_option(
-        "bp_fn", [slave_back_pressure_generator(), slave_no_back_pressure_generator()]
-    )
-    factory.add_option("pip_mode", [False, True])
-    factory.generate_tests()
-
-
 def test_ahb():
     """
     Test AHB
@@ -106,19 +97,25 @@ def test_ahb():
     Test ID: 2
     """
     module = os.path.splitext(os.path.basename(__file__))[0]
-    SIM_BUILD = os.path.join(
+    sim_build = os.path.join(
         cfg.TESTS_DIR, f"../run_dir/sim_build_{cfg.SIMULATOR}_{module}"
     )
-    extra_args_sim = cfg.EXTRA_ARGS
 
-    run(
-        python_search=[cfg.TESTS_DIR],
-        verilog_sources=cfg.VERILOG_SOURCES,
-        toplevel=cfg.TOPLEVEL,
-        module=module,
-        sim_build=SIM_BUILD,
-        extra_args=extra_args_sim,
-        extra_env=cfg.EXTRA_ENV,
+    runner = get_runner(cfg.SIMULATOR)
+
+    runner.build(
+        sources=cfg.VERILOG_SOURCES,
+        hdl_toplevel=cfg.TOPLEVEL,
+        build_dir=sim_build,
         timescale=cfg.TIMESCALE,
-        waves=1,
+        build_args=cfg.EXTRA_ARGS,
+        waves=True,
+    )
+
+    runner.test(
+        test_module=module,
+        hdl_toplevel=cfg.TOPLEVEL,
+        waves=True,
+        extra_env=cfg.EXTRA_ENV,
+        log_file=sim_build + "_run.log",
     )

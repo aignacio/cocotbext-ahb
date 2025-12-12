@@ -5,23 +5,16 @@
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 27.10.2023
 # Last Modified Date: 01.10.2024
-import cocotb
-import logging
-import random
 import copy
-import struct
 import datetime
+from typing import Any
 
-from .ahb_types import AHBTrans, AHBWrite, AHBSize, AHBResp
-from .ahb_bus import AHBBus
-from .version import __version__
-
-from cocotb.triggers import RisingEdge, FallingEdge
-from cocotb.handle import SimHandleBase
-from cocotb.types import LogicArray
+from cocotb.triggers import FallingEdge
 from cocotb_bus.monitors import Monitor
-from typing import Optional, Union, Generator, List, Any
-from .memory import Memory
+
+from .ahb_bus import AHBBus
+from .ahb_types import AHBResp, AHBSize, AHBTrans, AHBWrite
+from .version import __version__
 
 
 class AHBMonitor(Monitor):

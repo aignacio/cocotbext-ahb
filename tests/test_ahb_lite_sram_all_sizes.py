@@ -5,25 +5,17 @@
 # Date              : 08.10.2023
 # Last Modified Date: 09.09.2024
 
-import cocotb
 import os
 import random
-import math
-import pytest
 
-from const import cfg
-from cocotb_test.simulator import run
-from cocotb.triggers import ClockCycles
+import cocotb
+import pytest
 from cocotb.clock import Clock
-from cocotbext.ahb import (
-    AHBBus,
-    AHBLiteMaster,
-    AHBLiteSlaveRAM,
-    AHBResp,
-    AHBMonitor,
-    AHBSize,
-)
-from cocotb.regression import TestFactory
+from cocotb.triggers import ClockCycles
+from cocotb_tools.runner import get_runner
+from const import cfg
+
+from cocotbext.ahb import AHBBus, AHBLiteMaster, AHBLiteSlaveRAM
 
 
 def get_rnd_addr(mem_size_kib: int = 0):
@@ -62,6 +54,10 @@ async def setup_dut(dut, cycles):
 
 
 @cocotb.test()
+@cocotb.parametrize(
+    bp_fn=[slave_back_pressure_generator(), slave_no_back_pressure_generator()],
+    pip_mode=[False, True],
+)
 async def run_test(dut, bp_fn=None, pip_mode=False):
     mem_size_kib = 16
 
@@ -102,18 +98,9 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
             for i in range(0, n_bytes, byte_mode)
         )
         resp_rd = await ahb_lite_master.read(address_dw_aligned, pip=pip_mode)
-        assert (
-            hex(expect) == resp_rd[0]["data"]
-        ), f"Mismatch between WR/RD {hex(expect)} != {resp_rd[0]['data']}"
-
-
-if cocotb.SIM_NAME:
-    factory = TestFactory(run_test)
-    factory.add_option(
-        "bp_fn", [slave_back_pressure_generator(), slave_no_back_pressure_generator()]
-    )
-    factory.add_option("pip_mode", [False, True])
-    factory.generate_tests()
+        assert hex(expect) == resp_rd[0]["data"], (
+            f"Mismatch between WR/RD {hex(expect)} != {resp_rd[0]['data']}"
+        )
 
 
 @pytest.mark.parametrize("data_width", [{"DATA_WIDTH": "32"}, {"DATA_WIDTH": "64"}])
@@ -124,21 +111,25 @@ def test_ahb_lite_sram_all_sizes(data_width):
     Test ID: 3
     """
     module = os.path.splitext(os.path.basename(__file__))[0]
-    SIM_BUILD = os.path.join(
+    sim_build = os.path.join(
         cfg.TESTS_DIR,
         f"../run_dir/sim_build_{cfg.SIMULATOR}_{module}_data_width_{data_width['DATA_WIDTH']}_bits",
     )
-    extra_args_sim = cfg.EXTRA_ARGS
+    runner = get_runner(cfg.SIMULATOR)
 
-    run(
-        python_search=[cfg.TESTS_DIR],
-        verilog_sources=cfg.VERILOG_SOURCES,
-        toplevel=cfg.TOPLEVEL,
-        module=module,
-        parameters=data_width,
-        sim_build=SIM_BUILD,
-        extra_args=extra_args_sim,
-        extra_env=cfg.EXTRA_ENV,
+    runner.build(
+        sources=cfg.VERILOG_SOURCES,
+        hdl_toplevel=cfg.TOPLEVEL,
+        build_dir=sim_build,
         timescale=cfg.TIMESCALE,
-        waves=1,
+        build_args=cfg.EXTRA_ARGS,
+        waves=True,
+    )
+
+    runner.test(
+        test_module=module,
+        hdl_toplevel=cfg.TOPLEVEL,
+        waves=True,
+        extra_env=cfg.EXTRA_ENV,
+        log_file=sim_build + "_run.log",
     )

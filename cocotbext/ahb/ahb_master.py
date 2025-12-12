@@ -5,18 +5,23 @@
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
 # Last Modified Date: 27.12.2024
-import logging
-import cocotb
 import copy
 import datetime
+import logging
+from typing import List, Optional, Sequence, Union
 
-from .ahb_types import AHBTrans, AHBWrite, AHBSize, AHBResp, AHBBurst
-from .ahb_bus import AHBBus
-from .version import __version__
+import cocotb
+from packaging.version import Version
+
+if Version(cocotb.__version__) >= Version("2.0.0"):
+    from cocotb.handle import Immediate
 
 from cocotb.triggers import RisingEdge
-from typing import Optional, Sequence, Union, List
 from cocotb.types import LogicArray
+
+from .ahb_bus import AHBBus
+from .ahb_types import AHBBurst, AHBResp, AHBSize, AHBTrans, AHBWrite
+from .version import __version__
 
 
 class AHBLiteMaster:
@@ -35,9 +40,7 @@ class AHBLiteMaster:
         self.rst = reset
         self.timeout = timeout
         self.def_val = def_val
-        self.log = logging.getLogger(
-            f"cocotb.{name}.{bus._name}." f"{bus._entity._name}"
-        )
+        self.log = logging.getLogger(f"cocotb.{name}.{bus._name}.{bus._entity._name}")
         self._init_bus()
         self.log.info(f"AHB ({name}) master")
         self.log.info("cocotbext-ahb version %s", __version__)
@@ -52,7 +55,10 @@ class AHBLiteMaster:
             if signal not in ["hready", "hresp", "hrdata"]:
                 sig = getattr(self.bus, signal)
                 try:
-                    sig.setimmediatevalue(self._get_def(len(sig)))
+                    if Version(cocotb.__version__) >= Version("2.0.0"):
+                        sig.set(Immediate(self._get_def(len(sig))))
+                    else:
+                        sig.setimmediatevalue(self._get_def(len(sig)))
                 except AttributeError:
                     pass
 
@@ -91,7 +97,7 @@ class AHBLiteMaster:
                 "({} B)".format(size, data_bus_width)
             )
         elif size <= 0 or (size & (size - 1)) != 0:
-            raise ValueError(f"Error -> {size} - Size must" f"be a positive power of 2")
+            raise ValueError(f"Error -> {size} - Size mustbe a positive power of 2")
 
     def _fmt_amba(
         self, address: Sequence[int], size: Sequence[int], value: Sequence[int]
@@ -425,8 +431,7 @@ class AHBLiteMaster:
 
         if len(address) != len(value):
             raise Exception(
-                f"Length address {len(address)} is diff from"
-                f" length value {len(value)}!"
+                f"Length address {len(address)} is diff from length value {len(value)}!"
             )
 
         if size is None:

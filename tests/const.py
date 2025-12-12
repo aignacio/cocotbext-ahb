@@ -6,8 +6,8 @@
 # Date              : 08.10.2023
 # Last Modified Date: 08.10.2023
 
-import os
 import glob
+import os
 
 
 class cfg:
@@ -20,16 +20,22 @@ class cfg:
     TOPLEVEL = str(os.getenv("DUT"))
     SIMULATOR = str(os.getenv("SIM"))
     VERILOG_SOURCES = []  # The sequence below matters...
-    VERILOG_SOURCES += glob.glob(f'{RTL_DIR}**/*.v', recursive=True)
+    VERILOG_SOURCES += glob.glob(f"{RTL_DIR}**/*.v", recursive=True)
     EXTRA_ENV = {}
-    EXTRA_ENV['COCOTB_HDL_TIMEPRECISION'] = os.getenv("TIMEPREC")
-    EXTRA_ENV['COCOTB_HDL_TIMEUNIT'] = os.getenv("TIMEUNIT")
-    TIMESCALE = os.getenv("TIMEUNIT") + '/' + os.getenv("TIMEPREC")
+    EXTRA_ENV["COCOTB_HDL_TIMEPRECISION"] = os.getenv("TIMEPREC")
+    EXTRA_ENV["COCOTB_HDL_TIMEUNIT"] = os.getenv("TIMEUNIT")
+    TIMESCALE = (os.getenv("TIMEUNIT"), os.getenv("TIMEPREC"))
 
     if SIMULATOR == "verilator":
-        EXTRA_ARGS = ["--trace-fst", "--coverage", "--coverage-line",
-                      "--coverage-toggle", "--trace-structs",
-                      "--Wno-UNOPTFLAT", "--Wno-REDEFMACRO"]
+        EXTRA_ARGS = [
+            "--trace-fst",
+            "--coverage",
+            "--coverage-line",
+            "--coverage-toggle",
+            "--trace-structs",
+            "--Wno-UNOPTFLAT",
+            "--Wno-REDEFMACRO",
+        ]
     elif SIMULATOR == "icarus":
         EXTRA_ARGS = ["WAVES=1"]
 

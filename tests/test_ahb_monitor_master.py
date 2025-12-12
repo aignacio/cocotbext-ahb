@@ -6,16 +6,17 @@
 # Date              : 08.10.2023
 # Last Modified Date: 10.06.2024
 
-import cocotb
 import os
 import random
 
-from const import cfg
-from cocotb_test.simulator import run
-from cocotb.triggers import ClockCycles, Event
+import cocotb
 from cocotb.clock import Clock
-from cocotbext.ahb import AHBBus, AHBMonitor, AHBTrans
 from cocotb.regression import TestFactory
+from cocotb.triggers import ClockCycles, Event
+from cocotb_tools.runner import get_runner
+from const import cfg
+
+from cocotbext.ahb import AHBBus, AHBMonitor, AHBTrans
 
 
 def rnd_val(bit: int = 0, zero: bool = True):
@@ -30,16 +31,6 @@ def pick_random_value(input_list):
         return random.choice(input_list)
     else:
         return None  # Return None if the list is empty
-
-
-def slave_back_pressure_generator():
-    while True:
-        yield pick_random_value([False, True])
-
-
-def slave_no_back_pressure_generator():
-    while True:
-        yield True
 
 
 async def setup_dut(dut, cycles):
@@ -95,12 +86,6 @@ async def run_test(dut):  # , msig="hsel"):
     await ClockCycles(dut.hclk, 2)
 
 
-# if cocotb.SIM_NAME:
-# factory = TestFactory(run_test)
-# factory.add_option("msig", ["hsel", "haddr", "hsize", "htrans", "hwrite"])
-# factory.generate_tests()
-
-
 def test_ahb_monitor_master():
     """
     Test AHB monitor
@@ -108,19 +93,25 @@ def test_ahb_monitor_master():
     Test ID: 4
     """
     module = os.path.splitext(os.path.basename(__file__))[0]
-    SIM_BUILD = os.path.join(
+    sim_build = os.path.join(
         cfg.TESTS_DIR, f"../run_dir/sim_build_{cfg.SIMULATOR}_{module}"
     )
-    extra_args_sim = cfg.EXTRA_ARGS
 
-    run(
-        python_search=[cfg.TESTS_DIR],
-        verilog_sources=cfg.VERILOG_SOURCES,
-        toplevel=cfg.TOPLEVEL,
-        module=module,
-        sim_build=SIM_BUILD,
-        extra_args=extra_args_sim,
-        extra_env=cfg.EXTRA_ENV,
+    runner = get_runner(cfg.SIMULATOR)
+
+    runner.build(
+        sources=cfg.VERILOG_SOURCES,
+        hdl_toplevel=cfg.TOPLEVEL,
+        build_dir=sim_build,
         timescale=cfg.TIMESCALE,
-        waves=1,
+        build_args=cfg.EXTRA_ARGS,
+        waves=True,
+    )
+
+    runner.test(
+        test_module=module,
+        hdl_toplevel=cfg.TOPLEVEL,
+        waves=True,
+        extra_env=cfg.EXTRA_ENV,
+        log_file=sim_build + "_run.log",
     )

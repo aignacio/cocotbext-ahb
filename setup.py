@@ -1,6 +1,8 @@
-from setuptools import setup, find_packages, find_namespace_packages
 import codecs
 import os
+
+from setuptools import find_namespace_packages, find_packages, setup
+
 from cocotbext.ahb.version import __version__
 
 DESCRIPTION = "CocotbExt AHB Bus VIP"
@@ -28,11 +30,11 @@ setup(
     },
     include_package_data=False,
     python_requires=">=3.6",
-    install_requires=["cocotb>=1.8.0", "cocotb-bus>=0.2.1"],
+    install_requires=["cocotb>=1.8", "cocotb-bus"],
     extras_require={
         "test": [
             "pytest",
-            "cocotb-test",
+            "cocotb>=2.0.0",  # We require >=2.0.0 because of new testing features only avail at this version and onwards
         ],
     },
     keywords=["soc", "vip", "hdl", "verilog", "systemverilog", "ahb"],

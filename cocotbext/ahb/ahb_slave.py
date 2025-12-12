@@ -6,20 +6,25 @@
 # Date              : 16.10.2023
 # Last Modified Date: 26.12.2024
 
-import cocotb
-import logging
-import random
 import copy
 import datetime
+import logging
+import random
+from typing import Generator, List, Optional, Union
 
-from .ahb_types import AHBTrans, AHBWrite, AHBSize, AHBResp
-from .ahb_bus import AHBBus
-from .version import __version__
+import cocotb
+from packaging.version import Version
+
+if Version(cocotb.__version__) >= Version("2.0.0"):
+    from cocotb.handle import Immediate
 
 from cocotb.triggers import RisingEdge
 from cocotb.types import LogicArray
-from typing import Optional, Union, Generator, List
+
+from .ahb_bus import AHBBus
+from .ahb_types import AHBResp, AHBSize, AHBTrans, AHBWrite
 from .memory import Memory
+from .version import __version__
 
 
 class AHBLiteSlave:
@@ -38,9 +43,7 @@ class AHBLiteSlave:
         self.rst = reset
         self.rst_act_low = reset_act_low
         self.bp = bp
-        self.log = logging.getLogger(
-            f"cocotb.{name}.{bus._name}." f"{bus._entity._name}"
-        )
+        self.log = logging.getLogger(f"cocotb.{name}.{bus._name}.{bus._entity._name}")
         self._init_bus()
         self.log.info(f"AHB ({name}) slave")
         self.log.info("cocotbext-ahb version %s", __version__)
@@ -53,9 +56,15 @@ class AHBLiteSlave:
 
     def _init_bus(self) -> None:
         """Initialize the bus with default value."""
-        self.bus.hready.setimmediatevalue(1)
-        self.bus.hresp.setimmediatevalue(AHBResp.OKAY)
-        self.bus.hrdata.setimmediatevalue(0)
+
+        if Version(cocotb.__version__) >= Version("2.0.0"):
+            self.bus.hready.set(Immediate(1))
+            self.bus.hresp.set(Immediate(AHBResp.OKAY))
+            self.bus.hrdata.set(Immediate(0))
+        else:
+            self.bus.hready.setimmediatevalue(1)
+            self.bus.hresp.setimmediatevalue(AHBResp.OKAY)
+            self.bus.hrdata.setimmediatevalue(0)
 
     def _get_def(self, width: int = 1) -> LogicArray:
         """Return a handle obj with the default value"""
@@ -77,11 +86,11 @@ class AHBLiteSlave:
             if self.rst.value.is_resolvable:
                 if self.rst_act_low:
                     if self.rst.value == 0:  # Active 0
-                        self.log.warn("Slave AHB reset issued")
+                        self.log.warning("Slave AHB reset issued")
                         self._init_bus()
                 else:
                     if self.rst.value == 1:  # Active 1
-                        self.log.warn("Slave AHB reset issued")
+                        self.log.warning("Slave AHB reset issued")
                         self._init_bus()
 
             # Wait for a txn
@@ -120,6 +129,10 @@ class AHBLiteSlave:
                         self.bus.hresp.value = AHBResp.OKAY
 
             # Check for new txn
+            if Version(cocotb.__version__) >= Version("2.0.0"):
+                cur_hready = (
+                    True if cur_hready.is_resolvable and int(cur_hready) == 1 else False
+                )
             if cur_hready and self._check_inputs() and self._check_valid_txn():
                 txn_addr = self.bus.haddr.value
                 txn_size = AHBSize(self.bus.hsize.value)
@@ -169,7 +182,7 @@ class AHBLiteSlave:
                 "({} B)".format(size, data_bus_width)
             )
         elif size <= 0 or (size & (size - 1)) != 0:
-            raise ValueError(f"Error -> {size} - Size must" f"be a positive power of 2")
+            raise ValueError(f"Error -> {size} - Size mustbe a positive power of 2")
 
     def _check_inputs(self) -> bool:
         """Check any of the master signals are resolvable (i.e not 'z')"""
@@ -182,7 +195,7 @@ class AHBLiteSlave:
 
         for var, val in signals.items():
             if val.value.is_resolvable is False:
-                # self.log.warn(f"{var} is not resolvable")
+                # self.log.warning(f"{var} is not resolvable")
                 return False
         return True
 
@@ -246,11 +259,16 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
         self.memory = Memory(size=mem_size)
 
     def _chk_rd(self, addr: int, size: AHBSize) -> bool:
+        if Version(cocotb.__version__) >= Version("2.0.0"):
+            addr = addr.to_unsigned()
+
         if addr + (2**size) > self.memory.size:
             return False
         return True
 
     def _chk_wr(self, addr: int, size: AHBSize) -> bool:
+        if Version(cocotb.__version__) >= Version("2.0.0"):
+            addr = addr.to_unsigned()
         if addr + (2**size) > self.memory.size:
             return False
         return True
@@ -275,8 +293,13 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
             raise AssertionError("HSIZE is larger than the data width")
 
         # Check that the address is aligned to HSIZE
+        if Version(cocotb.__version__) >= Version("2.0.0"):
+            addr = addr.to_unsigned()
+
         if (addr % rd_bytes_num) != 0:
-            raise AssertionError("All transfers must be aligned to the address boundary equal to the size of the transfer (HSIZE)")
+            raise AssertionError(
+                "All transfers must be aligned to the address boundary equal to the size of the transfer (HSIZE)"
+            )
 
         # Get the addr aligned to data bus width
         addr_aligned = self._get_addr_aligned(addr)
@@ -307,8 +330,13 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
             raise AssertionError("HSIZE is larger than the data width")
 
         # Check that the address is aligned to HSIZE
+        if Version(cocotb.__version__) >= Version("2.0.0"):
+            addr = addr.to_unsigned()
+
         if (addr % wr_bytes_num) != 0:
-            raise AssertionError("All transfers must be aligned to the address boundary equal to the size of the transfer (HSIZE)")
+            raise AssertionError(
+                "All transfers must be aligned to the address boundary equal to the size of the transfer (HSIZE)"
+            )
 
         # Get the transfer size aligned addr
         addr_aligned = self._get_addr_aligned(addr)
@@ -322,7 +350,10 @@ class AHBLiteSlaveRAM(AHBLiteSlave):
         # Get mask by hsize
         data_mask = (1 << wr_bits_num) - 1
 
-        data = (value.integer >> (byte_offset * 8)) & data_mask
+        if Version(cocotb.__version__) >= Version("2.0.0"):
+            data = (value.to_unsigned() >> (byte_offset * 8)) & data_mask
+        else:
+            data = (value.integer >> (byte_offset * 8)) & data_mask
 
         # Get the (d)word data from memory
         mem_data = self.memory.read(addr_aligned, bus_bytes_width)

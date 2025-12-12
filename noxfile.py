@@ -9,7 +9,9 @@
 import nox
 
 
-@nox.session(python=["3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12"], reuse_venv=True)
+@nox.session(
+    python=["3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12"], reuse_venv=True
+)
 def run(session):
     session.env["DUT"] = "ahb_template"
     session.env["SIM"] = "icarus"
@@ -23,11 +25,8 @@ def run(session):
         "pytest-sugar",
         "pytest-cov",
         "pytest-split",
-        "cocotb-bus==0.2.1",
-        "cocotb-test==0.2.4",
-        "cocotb>=1.8.0"
     )
-    session.install("-e", ".")
+    session.install("-e", ".[test]")
     session.run(
         "pytest",
         "--cov=cocotbext",
@@ -37,7 +36,7 @@ def run(session):
         "-rP",
         "-n",
         "auto",
-        *session.posargs
+        *session.posargs,
     )
 
 
