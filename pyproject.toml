@@ -1,7 +1,41 @@
 [build-system]
 requires = ["setuptools", "wheel", "cocotb>=1.8.0", "cocotb-bus>=0.2.1"]
+build-backend = "setuptools.build_meta"
 
 [project]
-name = "cocotbext_ahb"
+name = "cocotbext-ahb"
 version = "0.5.0"
-description = "AHB extension for Cocotb"
+description = "CocotbExt AHB Bus VIP"
+readme = "README.md"
+requires-python = ">=3.6"
+license = { text = "MIT" }
+authors = [
+    { name = "Anderson Ignacio", email = "anderson@aignacio.com" }
+]
+keywords = ["soc", "vip", "hdl", "verilog", "systemverilog", "ahb"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: cocotb",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: Unix",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
+]
+dependencies = [
+    "cocotb>=1.8.0",
+    "cocotb-bus",
+]
+
+[project.optional-dependencies]
+test = ["cocotb>=2.0.0"]
+
+[project.urls]
+Homepage = "https://github.com/aignacio/cocotbext-ahb"
+"Bug Tracker" = "https://github.com/aignacio/cocotbext-ahb/issues"
+"Source Code" = "https://github.com/aignacio/cocotbext-ahb"
+
+[tool.setuptools.packages.find]
+include = ["cocotbext.*"]
